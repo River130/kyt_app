@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <title>軽貨物 KYT（危険予知トレーニング）＆安全教育記録</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -20,8 +20,7 @@
               900: '#78350f',
             },
             brand: {
-              700: '#0369a1',
-              800: '#075985',
+              800: '#1e293b',
               900: '#0f172a',
             }
           }
@@ -30,354 +29,387 @@
     }
   </script>
   <style>
+    html { font-size: 16px; }
     input, button, select, textarea { touch-action: manipulation; }
-    @page { size: A4 portrait; margin: 6mm; }
+
+    /* A4縦1ページ・安全教育実施記録書 印刷専用CSS */
+    @page {
+      size: A4 portrait;
+      margin: 8mm;
+    }
     @media print {
       html, body {
         background: white !important;
         color: black !important;
         margin: 0 !important;
         padding: 0 !important;
-        font-size: 10px !important;
-        line-height: 1.35 !important;
+        width: 100% !important;
+        font-size: 11.5px !important;
+        line-height: 1.5 !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
       }
-      header, #app-tabs, .no-print, details, #toastNotification, #btnScrollTop {
+      header, nav, footer, .no-print, #toastNotification, #btnScrollTop, #changelogModal {
         display: none !important;
       }
       main {
         max-width: 100% !important;
+        width: 100% !important;
         margin: 0 !important;
         padding: 0 !important;
       }
-      #content-record {
+      #content-printout {
         display: block !important;
         margin: 0 !important;
         padding: 0 !important;
       }
       #printable-kyt-area {
-        display: block !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
         width: 100% !important;
+        height: 278mm !important;
+        max-height: 278mm !important;
         margin: 0 !important;
-        padding: 12px 14px !important;
-        border: 1.5px solid #334155 !important;
+        padding: 16px 18px !important;
+        border: 2px solid #0f172a !important;
         border-radius: 4px !important;
         box-shadow: none !important;
+        box-sizing: border-box !important;
         page-break-inside: avoid !important;
         break-inside: avoid !important;
+      }
+      #printable-kyt-area h1 {
+        font-size: 18px !important;
+      }
+      .print-grid-2 {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 12px !important;
       }
     }
   </style>
 </head>
-<body class="bg-slate-100 text-slate-800 font-sans pb-28 antialiased min-h-screen">
+<body class="bg-slate-100 text-slate-900 font-sans pb-28 antialiased min-h-screen text-base">
 
   <!-- 通知トースト -->
-  <div id="toastNotification" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 opacity-0 pointer-events-none max-w-sm w-11/12">
-    <div id="toastContent" class="p-3 rounded-xl shadow-lg border text-xs font-bold flex items-center gap-2.5 bg-slate-800 text-white border-slate-700">
-      <span id="toastIcon" class="text-base">ℹ️</span>
+  <div id="toastNotification" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 opacity-0 pointer-events-none max-w-md w-11/12">
+    <div id="toastContent" class="p-4 rounded-xl shadow-xl border text-sm font-bold flex items-center gap-3 bg-slate-900 text-white border-slate-700">
+      <span id="toastIcon" class="text-xl">ℹ️</span>
       <span id="toastMsg" class="flex-1 leading-snug">メッセージ</span>
     </div>
   </div>
 
   <!-- ヘッダー -->
   <header class="bg-brand-900 text-white sticky top-0 z-30 shadow-md">
-    <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
+    <div class="max-w-3xl mx-auto px-4 py-3.5 flex flex-wrap items-center justify-between gap-2">
       <div>
-        <div class="flex items-center gap-2">
-          <span class="text-xs px-2 py-0.5 bg-amber-500 text-slate-950 font-black rounded">ゼロ災・月次教育</span>
-          <h1 class="text-sm sm:text-base font-bold tracking-tight">軽貨物 KYT（危険予知トレーニング）</h1>
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="text-xs px-2 py-0.5 bg-amber-500 text-slate-950 font-black rounded">月次安全教育</span>
+          <h1 class="text-lg sm:text-xl font-extrabold tracking-tight">軽貨物 KYT 危険予知訓練</h1>
+          <button type="button" onclick="openChangelogModal()" class="text-xs px-2.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-400/50 font-extrabold rounded-full transition-colors">
+            🆕 v1.1 更新履歴
+          </button>
         </div>
-        <p id="headerUserInfo" class="text-xs text-slate-300 mt-0.5">実施者: 未設定 | 累計実施: 0回</p>
+        <p id="headerUserInfo" class="text-sm text-slate-300 mt-1">実施者: 未設定 | 車両: 未設定</p>
       </div>
-      <div class="flex items-center gap-1.5 bg-slate-800 p-1 rounded-lg border border-slate-700">
-        <input type="date" id="kytDateInput" onchange="onKytDateChanged(this.value)" class="bg-slate-900 text-white border-0 rounded px-2 py-1 text-xs font-semibold focus:outline-none">
+      <div class="flex items-center gap-1.5 bg-slate-800 px-2.5 py-1.5 rounded-xl border border-slate-700">
+        <span class="text-xs text-slate-300 font-bold">実施日:</span>
+        <input type="date" id="kytDateInput" onchange="onDateChange(this.value)" class="bg-slate-900 text-white border-0 rounded px-2 py-1 text-sm font-bold focus:outline-none">
       </div>
     </div>
   </header>
 
   <!-- メインコンテンツ -->
-  <main class="max-w-3xl mx-auto px-3.5 pt-3.5 space-y-3.5">
+  <main class="max-w-3xl mx-auto px-3.5 pt-4 space-y-4">
 
-    <!-- 法令・安全教育案内バナー -->
-    <div class="bg-amber-50 border border-amber-300 rounded-xl p-2.5 text-[11px] text-amber-950 flex items-start gap-2 shadow-sm no-print">
-      <span class="text-base leading-none">🦺</span>
+    <!-- 安全教育バナー -->
+    <div class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-3.5 text-sm sm:text-base text-amber-950 flex items-start gap-3 shadow-sm no-print">
+      <span class="text-2xl leading-none mt-0.5">⛑️</span>
       <div class="leading-relaxed">
-        <strong>安全教育・危険予知トレーニング（4ラウンド法）：</strong> 
-        月1回のKYT実施と「指差し呼称」の定着で、バック事故・飛び出し・荷役ケガを未然に防止します。実施後はA4教育記録書として保存できます。
+        <strong class="font-extrabold">月1回の危険予知トレーニング（KYT）：</strong>
+        現場の危険を先読みし「指差し呼称」で事故ゼロを習慣化します。記録はA4安全教育記録書として印刷・保存できます。
       </div>
     </div>
 
-    <!-- ナビゲーションタブ -->
-    <div id="app-tabs" class="grid grid-cols-3 gap-1.5 bg-white rounded-xl p-1 shadow-sm border border-slate-200 text-xs font-bold text-slate-600">
-      <button onclick="switchKytTab('training')" id="tab-training" class="py-2.5 rounded-lg text-center bg-brand-900 text-white transition-colors">
-        ① KYTトレーニング実施
+    <!-- ナビゲーションタブ（大型・高視認性） -->
+    <div class="grid grid-cols-3 gap-1.5 bg-white rounded-2xl p-1.5 shadow-sm border border-slate-200 text-sm sm:text-base font-extrabold text-slate-600 no-print">
+      <button onclick="switchTab('train')" id="tab-train" class="py-3 rounded-xl text-center bg-amber-500 text-slate-950 shadow-sm transition-colors">
+        ① KYT訓練
       </button>
-      <button onclick="switchKytTab('record')" id="tab-record" class="py-2.5 rounded-lg text-center hover:text-slate-900 transition-colors">
-        ② A4記録書・送信
+      <button onclick="switchTab('history')" id="tab-history" class="py-3 rounded-xl text-center hover:bg-slate-50 transition-colors">
+        ② 実施履歴
       </button>
-      <button onclick="switchKytTab('history')" id="tab-history" class="py-2.5 rounded-lg text-center hover:text-slate-900 transition-colors">
-        ③ 過去の実施履歴
+      <button onclick="switchTab('printout')" id="tab-printout" class="py-3 rounded-xl text-center hover:bg-slate-50 transition-colors">
+        ③ 記録書印刷
       </button>
     </div>
 
-    <!-- 実施者・クラウド連携設定アコーディオン -->
-    <details id="kytSettingsAccordion" class="bg-white rounded-xl shadow-sm border border-slate-200 text-xs overflow-hidden group no-print">
-      <summary class="px-3.5 py-2.5 bg-slate-50 font-bold text-slate-700 flex items-center justify-between cursor-pointer select-none">
-        <span class="flex items-center gap-1.5">
-          <span>⚙️</span>
-          <span>実施者プロファイル・Googleスプレッドシート連携設定</span>
-        </span>
-        <span class="text-[10px] text-brand-700 font-semibold group-open:rotate-180 transition-transform">▼</span>
-      </summary>
-      <div class="p-3.5 space-y-3 bg-white border-t border-slate-100">
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-          <div>
-            <label class="block text-[11px] font-bold text-slate-700 mb-1">実施者氏名（ドライバー名）</label>
-            <input type="text" id="cfgKytDriver" placeholder="例: 山田 太郎" oninput="saveKytSettings()" class="w-full p-2 border border-slate-200 rounded-lg text-xs bg-slate-50 focus:bg-white font-semibold">
+    <!-- TAB 1: KYTトレーニング実施 -->
+    <div id="content-train" class="space-y-4">
+
+      <!-- 実施者・クラウド設定アコーディオン -->
+      <details id="settingsAccordion" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden group">
+        <summary class="px-4 py-3.5 bg-slate-50 font-extrabold text-slate-800 text-base flex items-center justify-between cursor-pointer select-none">
+          <span class="flex items-center gap-2">
+            <span>⚙️</span>
+            <span>実施者情報・スプレッドシート連携設定</span>
+          </span>
+          <span class="text-sm text-amber-700 font-bold group-open:rotate-180 transition-transform">▼</span>
+        </summary>
+        <div class="p-4 space-y-3.5 bg-white border-t border-slate-200 text-base">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-1">ドライバー氏名（実施者）</label>
+              <input type="text" id="cfgDriverName" placeholder="例: 配送 太郎" oninput="saveSettings()" class="w-full p-2.5 border-2 border-slate-200 rounded-xl text-base bg-slate-50 focus:bg-white focus:border-amber-500 font-bold">
+            </div>
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-1">車両番号（黒ナンバー）</label>
+              <input type="text" id="cfgVehicleNo" placeholder="例: 〇〇 480 あ 12-34" oninput="saveSettings()" class="w-full p-2.5 border-2 border-slate-200 rounded-xl text-base bg-slate-50 focus:bg-white focus:border-amber-500 font-mono">
+            </div>
           </div>
-          <div>
-            <label class="block text-[11px] font-bold text-slate-700 mb-1">所属・屋号・営業所</label>
-            <input type="text" id="cfgKytCompany" placeholder="例: River130 Logistics" oninput="saveKytSettings()" class="w-full p-2 border border-slate-200 rounded-lg text-xs bg-slate-50 focus:bg-white">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-1">所属・屋号・営業所</label>
+              <input type="text" id="cfgCompany" placeholder="例: 〇〇運送 / 個人事業主" oninput="saveSettings()" class="w-full p-2.5 border-2 border-slate-200 rounded-xl text-base bg-slate-50 focus:bg-white focus:border-amber-500">
+            </div>
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-1">安全管理者・指導者名</label>
+              <input type="text" id="cfgManager" placeholder="例: 自主訓練 / 安全運行管理者" oninput="saveSettings()" class="w-full p-2.5 border-2 border-slate-200 rounded-xl text-base bg-slate-50 focus:bg-white focus:border-amber-500">
+            </div>
           </div>
-          <div>
-            <label class="block text-[11px] font-bold text-slate-700 mb-1">車両番号（任意）</label>
-            <input type="text" id="cfgKytVehicle" placeholder="例: 相模 480 あ 12-34" oninput="saveKytSettings()" class="w-full p-2 border border-slate-200 rounded-lg text-xs bg-slate-50 focus:bg-white font-mono">
+
+          <div class="pt-2 border-t border-slate-200 space-y-2">
+            <label class="block text-sm font-bold text-emerald-800">📊 Googleスプレッドシート連携URL（任意・BYOD対応）</label>
+            <input type="url" id="cfgGasUrl" placeholder="https://script.google.com/macros/s/.../exec" oninput="saveSettings()" class="w-full p-2.5 border-2 border-slate-200 rounded-xl text-sm bg-slate-50 focus:bg-white font-mono">
+            <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+              <span class="text-xs text-slate-500">※初期状態は空欄（端末内に自動保存されます）</span>
+              <button type="button" onclick="copyKytGasCode()" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold rounded-lg border border-emerald-300 text-sm">
+                📋 KYT専用GASコードをコピー
+              </button>
+            </div>
           </div>
         </div>
+      </details>
 
-        <div class="pt-2 border-t border-slate-100 space-y-1">
-          <label class="block text-[11px] font-bold text-emerald-800 flex items-center gap-1.5">
-            <span>📊</span> Googleスプレッドシート連携URL (KYT専用 GAS URL・任意)
-          </label>
-          <input type="url" id="cfgKytGasUrl" placeholder="https://script.google.com/macros/s/.../exec" oninput="saveKytSettings()" class="w-full p-2 border border-slate-200 rounded-lg text-xs bg-slate-50 focus:bg-white font-mono">
-          <div class="flex items-center justify-between pt-1">
-            <p class="text-[10px] text-slate-400">※空欄のままでも端末内保存＆A4印刷・LINE共有はすべて使えます。</p>
-            <button type="button" onclick="copyKytGasCode()" class="text-[10px] text-emerald-700 font-bold hover:underline bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-              📋 KYT専用GASコードをコピー
-            </button>
-          </div>
-        </div>
-      </div>
-    </details>
-
-    <!-- TAB 1: KYTトレーニング実施（4ラウンド法） -->
-    <div id="content-training" class="space-y-3.5">
-
-      <!-- STEP 1: 危険シナリオ選択＆図解イラスト -->
-      <section class="bg-white rounded-xl p-3.5 shadow-sm border border-slate-200 space-y-3">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-          <h2 class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-            <span class="px-1.5 py-0.5 bg-amber-500 text-slate-950 rounded text-[10px] font-black">1R</span>
-            <span>現状把握：今月の訓練テーマ（軽貨物事故ワースト8）</span>
+      <!-- STEP 1: シチュエーション選択 -->
+      <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-3.5">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+          <h2 class="text-base sm:text-lg font-extrabold text-slate-900 flex items-center gap-2">
+            <span class="px-2.5 py-0.5 bg-amber-500 text-slate-950 rounded-lg text-sm font-black">STEP 1</span>
+            <span>危険シナリオを選ぶ（全8種）</span>
           </h2>
-          <button type="button" onclick="pickRandomScenario()" class="text-[11px] font-bold text-brand-700 hover:underline bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
-            🎲 ランダム出題
-          </button>
         </div>
 
-        <!-- シナリオ選択チップ -->
-        <div id="scenarioButtonsGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-[11px] font-bold"></div>
+        <!-- 8つのシナリオボタン（スマホで読みやすい2列大型カード） -->
+        <div id="scenarioGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5"></div>
 
-        <!-- シーン別イラストSVG＆状況説明カード -->
-        <div class="bg-slate-900 text-white rounded-xl p-3 space-y-2.5 shadow-inner">
+        <!-- イラスト図解＆状況説明ボックス -->
+        <div class="bg-slate-900 text-white rounded-2xl p-4 space-y-3 shadow-inner">
           <div class="flex items-center justify-between">
-            <span id="sceneBadge" class="text-[10px] px-2 py-0.5 bg-rose-600 text-white font-bold rounded">重大事故リスク</span>
-            <span id="sceneTitle" class="text-xs sm:text-sm font-extrabold text-amber-300">① 住宅街の夕暮れ・駐車車両の陰からの飛び出し</span>
+            <span id="activeScenarioBadge" class="text-xs font-extrabold px-2.5 py-1 bg-amber-500 text-slate-950 rounded-lg">シナリオ #1</span>
+            <span class="text-xs text-slate-300">イラストを見て危険を予測しよう</span>
           </div>
+          <h3 id="activeScenarioTitle" class="text-lg sm:text-xl font-extrabold text-amber-300 leading-snug">住宅街の夕暮れ・停車車両の陰からの飛び出し</h3>
           
-          <!-- SVG危険予知イラスト描画エリア -->
-          <div id="sceneIllustrationBox" class="w-full bg-slate-800 rounded-lg border border-slate-700 p-2 flex items-center justify-center overflow-hidden"></div>
+          <!-- SVG危険予測図解エリア -->
+          <div id="scenarioSvgBox" class="w-full bg-slate-800 rounded-xl p-2 border border-slate-700 flex items-center justify-center overflow-hidden"></div>
 
-          <p id="sceneDescription" class="text-xs text-slate-200 leading-relaxed bg-slate-800/80 p-2.5 rounded-lg border border-slate-700">
-            17時過ぎの薄暮時間帯。配達先の目の前にハザードを点けて停車しようとした際、対向車線側の電柱・駐車車両の陰から下校中の小学生や自転車が飛び出してくる可能性がある状況。
+          <p id="activeScenarioDesc" class="text-sm sm:text-base text-slate-100 leading-relaxed bg-slate-800/80 p-3 rounded-xl border border-slate-700">
+            17時過ぎの住宅街。次の配達先を探しながら徐行中、前方にハザードを焚いた宅配車両が停車しており、その陰から子どもや自転車が飛び出してくるかもしれない状況です。
           </p>
         </div>
       </section>
 
-      <!-- STEP 2: どんな危険が潜んでいるか（2R 本質追究） -->
-      <section class="bg-white rounded-xl p-3.5 shadow-sm border border-slate-200 space-y-2.5">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-          <h2 class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-            <span class="px-1.5 py-0.5 bg-rose-600 text-white rounded text-[10px] font-black">2R</span>
-            <span>本質追究：どんな危険が潜んでいるか？（〜なので、〜になる）</span>
+      <!-- STEP 2: 1R・2R どんな危険が潜んでいるか（要因） -->
+      <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-3.5">
+        <div class="border-b border-slate-100 pb-2.5">
+          <h2 class="text-base sm:text-lg font-extrabold text-slate-900 flex items-center gap-2">
+            <span class="px-2.5 py-0.5 bg-rose-600 text-white rounded-lg text-sm font-black">STEP 2</span>
+            <span>どんな危険が潜んでいるか？（1R・2R）</span>
           </h2>
+          <p class="text-sm text-slate-600 mt-1">下のチップをタップするか、自由に入力してください。</p>
         </div>
 
-        <div class="space-y-2">
-          <div class="flex flex-wrap items-center gap-1">
-            <span class="text-[10px] text-slate-500 font-bold">ワンタップ危険要因候補:</span>
-            <div id="hazardChipsContainer" class="flex flex-wrap gap-1"></div>
-          </div>
-          <textarea id="kytHazardsInput" rows="3" placeholder="例: 配達を急いで前方不注意になっているので、駐車車両の陰から飛び出した子供と接触する。" oninput="saveCurrentDraft()" class="w-full p-2.5 border border-slate-300 rounded-lg text-xs bg-slate-50 focus:bg-white focus:outline-none leading-relaxed"></textarea>
-        </div>
-      </section>
+        <!-- ワンタップ危険要因チップ -->
+        <div id="hazardChips" class="flex flex-wrap gap-2"></div>
 
-      <!-- STEP 3: 具体的な対策（3R 対策樹立） -->
-      <section class="bg-white rounded-xl p-3.5 shadow-sm border border-slate-200 space-y-2.5">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-          <h2 class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-            <span class="px-1.5 py-0.5 bg-emerald-600 text-white rounded text-[10px] font-black">3R</span>
-            <span>対策樹立：どうすれば防げるか？（具体的な安全行動）</span>
-          </h2>
-        </div>
-
-        <div class="space-y-2">
-          <div class="flex flex-wrap items-center gap-1">
-            <span class="text-[10px] text-slate-500 font-bold">ワンタップ対策候補:</span>
-            <div id="countermeasureChipsContainer" class="flex flex-wrap gap-1"></div>
-          </div>
-          <textarea id="kytMeasuresInput" rows="3" placeholder="例: 駐車車両の横を通過する際は徐行（時速20km以下）し、ブレーキの上に足を構えて死角の影を確認する。" oninput="saveCurrentDraft()" class="w-full p-2.5 border border-slate-300 rounded-lg text-xs bg-slate-50 focus:bg-white focus:outline-none leading-relaxed"></textarea>
-        </div>
-      </section>
-
-      <!-- STEP 4: 重点行動目標＆指差し呼称（4R 目標設定） -->
-      <section class="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-3.5 shadow-sm border border-amber-300 space-y-3">
-        <div class="flex items-center justify-between border-b border-amber-200 pb-2">
-          <h2 class="text-xs font-bold text-amber-950 flex items-center gap-1.5">
-            <span class="px-1.5 py-0.5 bg-brand-900 text-white rounded text-[10px] font-black">4R</span>
-            <span>目標設定：今月の重点行動目標 ＆ 指差し呼称</span>
-          </h2>
-          <span class="text-[10px] text-amber-800 font-bold">声に出して確認！</span>
-        </div>
-
-        <div class="space-y-2 text-xs">
-          <div>
-            <label class="text-[11px] font-bold text-amber-950 block mb-1">指差し呼称フレーズ（〜よし！）</label>
-            <div class="flex gap-1.5">
-              <input type="text" id="kytPointingCallInput" placeholder="例: 死角の影・足元確認、よし！" oninput="saveCurrentDraft()" class="flex-1 p-2.5 border border-amber-300 rounded-lg text-xs sm:text-sm font-extrabold bg-white text-slate-900">
-            </div>
-            <div id="pointingChipsContainer" class="flex flex-wrap gap-1 mt-1.5"></div>
-          </div>
-
-          <div class="pt-1">
-            <button type="button" onclick="completeKytSession()" class="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-black rounded-xl shadow-lg flex items-center justify-center gap-2 text-sm active:scale-[0.98] transition-all border border-emerald-500">
-              <span class="text-lg">👉</span>
-              <span>指差し呼称完了！KYT実施記録を確定する</span>
-            </button>
-          </div>
-        </div>
-      </section>
-
-    </div>
-
-    <!-- TAB 2: A4安全教育記録書・LINE共有・スプレッドシート送信 -->
-    <div id="content-record" class="hidden space-y-3.5">
-
-      <!-- 操作バー -->
-      <section class="bg-white rounded-xl p-3.5 shadow-sm border border-slate-200 flex flex-wrap gap-2 items-center justify-between no-print">
         <div>
-          <h2 class="text-xs font-bold text-slate-800">安全教育・KYT実施記録書（A4縦 1ページ）</h2>
-          <p class="text-[10px] text-slate-500">法令指導基準の安全教育実施記録として保存・提出可能です</p>
+          <label class="block text-sm font-bold text-slate-700 mb-1.5">予測した危険と事故の要因</label>
+          <textarea id="inputHazard" rows="3" placeholder="例: 停車車両の陰から子どもが急に飛び出し、接触事故を起こす危険がある。" oninput="saveDraft()" class="w-full p-3 border-2 border-slate-200 rounded-xl text-base bg-slate-50 focus:bg-white focus:border-rose-500 leading-relaxed"></textarea>
         </div>
-        <div class="flex items-center gap-2 flex-wrap">
-          <button type="button" onclick="shareKytToLine()" class="px-3 py-1.5 bg-[#06C755] hover:bg-[#05b34c] text-white rounded-lg text-xs font-bold shadow flex items-center gap-1">
-            <span>💬</span> LINE報告
+      </section>
+
+      <!-- STEP 3: 3R・4R 具体的な対策と指差し呼称 -->
+      <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-3.5">
+        <div class="border-b border-slate-100 pb-2.5">
+          <h2 class="text-base sm:text-lg font-extrabold text-slate-900 flex items-center gap-2">
+            <span class="px-2.5 py-0.5 bg-emerald-600 text-white rounded-lg text-sm font-black">STEP 3</span>
+            <span>具体的な対策 ＆ 指差し呼称（3R・4R）</span>
+          </h2>
+          <p class="text-sm text-slate-600 mt-1">事故を防ぐための具体的な行動目標を決めます。</p>
+        </div>
+
+        <!-- ワンタップ対策チップ -->
+        <div id="countermeasureChips" class="flex flex-wrap gap-2"></div>
+
+        <div>
+          <label class="block text-sm font-bold text-slate-700 mb-1.5">私が実践する安全対策</label>
+          <textarea id="inputAction" rows="3" placeholder="例: 停車車両の横を通過する際は、いつでも止まれる速度（徐行）まで落とし、車両下の影や足元を確認する。" oninput="saveDraft()" class="w-full p-3 border-2 border-slate-200 rounded-xl text-base bg-slate-50 focus:bg-white focus:border-emerald-500 leading-relaxed"></textarea>
+        </div>
+
+        <!-- 指差し呼称ボックス -->
+        <div class="bg-amber-50 border-2 border-amber-400 rounded-2xl p-4 space-y-2.5">
+          <label class="block text-base font-extrabold text-amber-950 flex items-center gap-2">
+            <span>👉</span>
+            <span>今月の指差し呼称（行動目標）</span>
+          </label>
+          <input type="text" id="inputPointingCall" placeholder="例: 死角の通過は最徐行・足元確認、よし！" oninput="saveDraft()" class="w-full p-3 border-2 border-amber-300 rounded-xl text-base sm:text-lg font-extrabold bg-white text-slate-900 focus:border-amber-600">
+          <p class="text-sm text-amber-900">※声に出して指差し呼称を行い、下のボタンで記録を確定してください。</p>
+        </div>
+
+        <!-- 完了＆送信アクションボタン -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+          <button type="button" onclick="completeKytRecord(false)" class="w-full py-4 px-4 bg-brand-900 hover:bg-slate-800 active:scale-[0.98] text-white font-extrabold rounded-2xl shadow-lg text-base sm:text-lg flex items-center justify-center gap-2 transition-all">
+            <span>✅</span>
+            <span>KYT訓練を完了・保存</span>
           </button>
-          <button type="button" onclick="sendKytToSpreadsheet()" id="btnSendKytGas" class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-bold shadow flex items-center gap-1">
-            <span>📊</span> シート送信
-          </button>
-          <button type="button" onclick="window.print()" class="px-3 py-1.5 bg-brand-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold shadow flex items-center gap-1">
-            <span>🖨️</span> A4印刷 / PDF
+          <button type="button" onclick="completeKytRecord(true)" class="w-full py-4 px-4 bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] text-white font-extrabold rounded-2xl shadow-lg text-base sm:text-lg flex items-center justify-center gap-2 transition-all">
+            <span>📊</span>
+            <span>保存 ＋ シートへ送信</span>
           </button>
         </div>
       </section>
 
-      <!-- A4印刷用ドキュメント枠 -->
-      <section id="printable-kyt-area" class="bg-white p-4 sm:p-6 rounded-xl border border-slate-300 shadow-sm text-slate-900 space-y-3">
-        <div class="border-b-2 border-slate-900 pb-2 flex justify-between items-end">
+    </div>
+
+    <!-- TAB 2: 実施履歴一覧 -->
+    <div id="content-history" class="hidden space-y-4">
+      <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+          <h2 class="text-lg font-extrabold text-slate-900">📚 KYT実施履歴一覧</h2>
+          <span id="historyCountBadge" class="px-3 py-1 bg-amber-100 text-amber-900 font-extrabold rounded-full text-sm">全 0 件</span>
+        </div>
+        <div id="historyListContainer" class="space-y-3"></div>
+      </section>
+    </div>
+
+    <!-- TAB 3: A4安全教育実施記録書 印刷・PDF出力 -->
+    <div id="content-printout" class="hidden space-y-4">
+      <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-3 no-print">
+        <div>
+          <h2 class="text-base sm:text-lg font-extrabold text-slate-900">安全教育実施記録書（A4縦 1ページ）</h2>
+          <p class="text-sm text-slate-600">監査・巡回指導の提出書類としてそのままPDF保存・印刷できます。</p>
+        </div>
+        <button type="button" onclick="window.print()" class="w-full sm:w-auto py-3 px-5 bg-brand-900 hover:bg-slate-800 text-white font-extrabold rounded-xl shadow text-base flex items-center justify-center gap-2">
+          <span>🖨️</span>
+          <span>A4印刷 / PDF保存</span>
+        </button>
+      </section>
+
+      <!-- A4印刷対象エリア -->
+      <section id="printable-kyt-area" class="bg-white p-4 sm:p-6 rounded-2xl border-2 border-slate-400 shadow-sm text-slate-900 space-y-4">
+        <div class="border-b-2 border-slate-900 pb-2.5 flex flex-wrap justify-between items-end gap-2">
           <div>
-            <span class="text-[10px] px-2 py-0.5 bg-slate-900 text-white font-bold rounded">安全教育・事故防止記録</span>
-            <h1 class="text-base sm:text-lg font-black tracking-tight mt-1">貨物軽自動車運送事業 危険予知トレーニング（KYT）実施記録書</h1>
+            <span class="text-xs px-2 py-0.5 bg-slate-900 text-white font-bold rounded">貨物軽自動車運送事業 安全教育記録</span>
+            <h1 class="text-lg sm:text-xl font-black text-slate-900 mt-1">危険予知トレーニング（KYT）実施記録書</h1>
           </div>
-          <div class="text-right text-[11px] space-y-0.5">
-            <div><strong>実施日:</strong> <span id="prKytDate">2026-11-13</span></div>
-            <div class="border border-slate-400 px-2.5 py-0.5 rounded bg-slate-50 inline-block">
-              <span class="text-[9px] text-slate-500 block leading-none">確認印</span>
-              <span class="text-xs font-bold text-slate-300">印</span>
+          <div class="text-right text-sm flex items-center gap-3">
+            <div><strong>実施日:</strong> <span id="prDate" class="font-bold">----</span></div>
+            <div class="border border-slate-600 px-3 py-1 text-center rounded bg-slate-50">
+              <span class="text-[10px] block text-slate-500 leading-none">管理者確認印</span>
+              <span class="text-sm font-bold text-slate-300">印</span>
             </div>
           </div>
         </div>
 
-        <!-- 実施者基本情報テーブル -->
-        <table class="w-full border-collapse border border-slate-400 text-xs">
-          <tr>
-            <th class="border border-slate-400 bg-slate-100 p-1.5 w-24 text-left">事業者・所属</th>
-            <td class="border border-slate-400 p-1.5 font-semibold" id="prKytCompany">未設定</td>
-            <th class="border border-slate-400 bg-slate-100 p-1.5 w-24 text-left">受講・実施者</th>
-            <td class="border border-slate-400 p-1.5 font-bold" id="prKytDriver">未設定</td>
-          </tr>
-          <tr>
-            <th class="border border-slate-400 bg-slate-100 p-1.5 text-left">使用車両番号</th>
-            <td class="border border-slate-400 p-1.5 font-mono" id="prKytVehicle">未設定</td>
-            <th class="border border-slate-400 bg-slate-100 p-1.5 text-left">教育区分</th>
-            <td class="border border-slate-400 p-1.5">月次定期安全教育（4ラウンド法KYT）</td>
-          </tr>
-        </table>
+        <div class="bg-slate-50 border border-slate-300 rounded-xl p-3 grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-sm print-grid-2">
+          <div><span class="text-slate-600">所属・事業者名:</span> <strong id="prCompany">未設定</strong></div>
+          <div><span class="text-slate-600">指導・管理者:</span> <strong id="prManager">自主訓練</strong></div>
+          <div><span class="text-slate-600">受講運転者氏名:</span> <strong id="prDriver">未設定</strong></div>
+          <div><span class="text-slate-600">使用車両番号:</span> <strong id="prVehicle" class="font-mono">未設定</strong></div>
+        </div>
 
-        <!-- 1R 訓練テーマ -->
-        <div class="border border-slate-400 rounded p-2.5 space-y-1">
-          <div class="text-xs font-black bg-slate-800 text-white px-2 py-1 rounded">
-            【1R：現状把握】 訓練対象シチュエーション
+        <div class="border border-slate-300 rounded-xl p-3.5 space-y-2">
+          <div class="text-xs font-extrabold text-amber-800 bg-amber-50 px-2.5 py-1 rounded inline-block border border-amber-200">
+            【1R 現状把握】訓練テーマ・想定シチュエーション
           </div>
-          <div class="font-bold text-sm pt-1" id="prKytTheme">① 住宅街の夕暮れ・駐車車両の陰からの飛び出し</div>
-          <p class="text-xs text-slate-700 leading-relaxed" id="prKytSceneDesc"></p>
+          <h3 id="prScenarioTitle" class="text-base font-extrabold text-slate-900">シナリオタイトル</h3>
+          <p id="prScenarioDesc" class="text-sm text-slate-700 leading-relaxed">シナリオ説明</p>
         </div>
 
-        <!-- 2R 潜む危険 -->
-        <div class="border border-slate-400 rounded p-2.5 space-y-1">
-          <div class="text-xs font-black bg-rose-800 text-white px-2 py-1 rounded">
-            【2R：本質追究】 想定した危険要因（〜なので、〜になる）
+        <div class="border border-slate-300 rounded-xl p-3.5 space-y-1.5">
+          <div class="text-xs font-extrabold text-rose-800 bg-rose-50 px-2.5 py-1 rounded inline-block border border-rose-200">
+            【2R 本質追究】予測した危険のポイントと事故要因
           </div>
-          <div class="text-xs leading-relaxed whitespace-pre-wrap pt-1 min-h-[54px]" id="prKytHazards">未記入</div>
+          <p id="prHazard" class="text-sm sm:text-base text-slate-900 leading-relaxed font-medium">未入力</p>
         </div>
 
-        <!-- 3R 対策樹立 -->
-        <div class="border border-slate-400 rounded p-2.5 space-y-1">
-          <div class="text-xs font-black bg-emerald-800 text-white px-2 py-1 rounded">
-            【3R：対策樹立】 決定した具体的な安全対策・防止行動
+        <div class="border border-slate-300 rounded-xl p-3.5 space-y-1.5">
+          <div class="text-xs font-extrabold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded inline-block border border-emerald-200">
+            【3R 対策樹立】事故防止のための具体的対策
           </div>
-          <div class="text-xs leading-relaxed whitespace-pre-wrap pt-1 min-h-[54px]" id="prKytMeasures">未記入</div>
+          <p id="prAction" class="text-sm sm:text-base text-slate-900 leading-relaxed font-medium">未入力</p>
         </div>
 
-        <!-- 4R 指差し呼称目標 -->
-        <div class="border-2 border-amber-500 bg-amber-50/70 rounded p-3 text-center space-y-1">
-          <div class="text-[11px] font-bold text-amber-900">【4R：重点行動目標・指差し呼称】</div>
-          <div class="text-base sm:text-lg font-black text-slate-900 tracking-wide" id="prKytPointingCall">「死角の影・足元確認、よし！」</div>
+        <div class="border-2 border-amber-500 bg-amber-50/70 rounded-xl p-3.5 space-y-1">
+          <div class="text-xs font-extrabold text-amber-950">【4R 目標設定】今月の指差し呼称・行動目標</div>
+          <p id="prPointingCall" class="text-base sm:text-lg font-black text-slate-900">「〇〇よし！」</p>
         </div>
 
-        <div class="text-[10px] text-slate-500 pt-1 flex justify-between">
-          <span>※貨物軽自動車運送事業における輸送の安全確保に関する指導基準に基づき記録・保存</span>
-          <span>River130 安全管理システム</span>
-        </div>
-      </section>
-
-    </div>
-
-    <!-- TAB 3: 過去の実施履歴一覧 -->
-    <div id="content-history" class="hidden space-y-3">
-      <section class="bg-white rounded-xl p-3.5 shadow-sm border border-slate-200 space-y-3">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-          <h2 class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-            <span>📚</span>
-            <span>過去のKYT実施履歴（端末内保存ログ）</span>
-          </h2>
-          <button type="button" onclick="exportKytCsv()" class="text-[11px] font-bold px-2.5 py-1 bg-slate-800 text-white rounded-lg hover:bg-slate-900">
-            📥 CSV保存
-          </button>
-        </div>
-
-        <div id="kytHistoryList" class="space-y-2.5 text-xs">
-          <p class="text-slate-400 text-center py-6">まだ確定済みのKYT記録はありません。</p>
+        <div class="border border-slate-300 rounded-xl bg-slate-50 p-3 text-xs text-slate-700 leading-relaxed">
+          <strong>備考：</strong>貨物軽自動車運送事業輸送安全規則に基づき、運転者に対する安全教育および危険予知訓練を実施したことを記録する。（保存期間：1年間）
         </div>
       </section>
     </div>
+
+    <!-- フッター（更新履歴導線） -->
+    <footer class="pt-2 pb-6 text-center text-sm text-slate-500 space-y-2 no-print">
+      <div>
+        <button type="button" onclick="openChangelogModal()" class="px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-xl border border-slate-300 shadow-sm inline-flex items-center gap-2">
+          <span>📋</span>
+          <span>アプリの更新履歴（リリースノート）を見る</span>
+        </button>
+      </div>
+      <p class="text-xs text-slate-400">データは端末内（LocalStorage）に保存され、個人情報は外部送信されません。</p>
+    </footer>
 
   </main>
 
-  <!-- ページ先頭へ戻るボタン -->
-  <button id="btnScrollTop" type="button" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" aria-label="ページ先頭へ戻る" style="bottom: calc(1.25rem + env(safe-area-inset-bottom));" class="fixed right-4 z-40 py-2.5 px-3.5 bg-brand-900/95 hover:bg-brand-800 text-white rounded-full shadow-2xl border border-white/20 transition-all duration-300 opacity-0 pointer-events-none active:scale-95 flex items-center justify-center gap-1 text-xs font-bold no-print backdrop-blur-sm">
-    <span class="text-sm leading-none">⬆️</span>
+  <!-- 更新履歴モーダル -->
+  <div id="changelogModal" class="fixed inset-0 bg-slate-950/80 z-50 hidden flex items-center justify-center p-3 backdrop-blur-sm no-print">
+    <div class="bg-white rounded-2xl max-w-md w-full max-h-[88dvh] overflow-y-auto shadow-2xl border border-slate-200 p-4 space-y-3.5">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+        <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-1.5">
+          <span>📋</span>
+          <span>軽貨物KYTアプリ 更新履歴</span>
+        </h3>
+        <button type="button" onclick="closeChangelogModal()" class="px-3 py-1 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm font-bold">✕ 閉じる</button>
+      </div>
+      <div class="space-y-3 text-sm">
+        <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-200 space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="font-black text-amber-950">v1.1（最新）</span>
+            <span class="px-2 py-0.5 bg-amber-500 text-slate-950 text-xs font-black rounded">NEW</span>
+          </div>
+          <ul class="list-disc list-inside text-amber-950 space-y-1 leading-relaxed">
+            <li><strong>スマホ大文字＆高視認性UI刷新：</strong>文字サイズ・チップ・入力枠を約1.3倍へ拡大し、スマホ片手でも読みやすく改善。</li>
+            <li><strong>一般公開（BYOD）クリーン化＆更新履歴搭載：</strong>個人情報の初期値を完全空欄化し、リリースノート閲覧機能を追加。</li>
+          </ul>
+        </div>
+        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+          <div class="font-black text-slate-900">v1.0 — 初版リリース</div>
+          <ul class="list-disc list-inside text-slate-700 space-y-1 leading-relaxed">
+            <li>軽貨物特有の8種の危険シナリオ（SVG図解付き）、4ラウンド法、指差し呼称、A4安全教育記録書印刷、GASスプレッドシート連携を実装。</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 先頭へ戻るボタン（スマホPWA対応） -->
+  <button id="btnScrollTop" type="button" onclick="scrollToTop()" aria-label="先頭へ戻る" style="bottom: calc(1.25rem + env(safe-area-inset-bottom));" class="fixed right-4 z-50 py-3 px-4 bg-brand-900/95 hover:bg-slate-800 text-white rounded-full shadow-2xl border border-white/25 transition-all duration-200 opacity-0 pointer-events-none active:scale-95 flex items-center justify-center gap-1.5 text-sm font-extrabold no-print">
+    <span>⬆️</span>
     <span>先頭</span>
   </button>
 
@@ -385,396 +417,393 @@
     const KYT_STORAGE_KEY = 'k_cargo_kyt_records_v1';
     const KYT_SETTINGS_KEY = 'k_cargo_kyt_settings_v1';
 
-    // 軽貨物現場に特化した8つのリアル事故シナリオ
-    const KYT_SCENARIOS = [
+    const SCENARIOS = [
       {
-        id: 'jump_out',
-        shortTitle: '① 夕暮れ飛び出し',
-        badge: '人身事故ワースト1',
-        title: '① 住宅街の夕暮れ・駐車車両の陰からの飛び出し',
-        description: '17時過ぎの薄暮時間帯。配達先の目の前にハザードを点けて停車しようとした際、対向車線側の電柱・駐車車両の陰から下校中の小学生や自転車が飛び出してくる可能性がある状況。',
+        id: 's1',
+        shortTitle: '① 住宅街の陰から飛び出し',
+        title: '住宅街の夕暮れ・停車車両の陰からの飛び出し',
+        desc: '17時過ぎの住宅街。次の配達先を探しながら徐行中、前方にハザードを焚いた宅配車両が停車しており、その陰から子どもや自転車が飛び出してくるかもしれない状況です。',
         hazards: [
-          '配達を急いで前方確認が甘くなり、駐車車両の陰から飛び出した子供と接触する',
-          '夕暮れで歩行者から自車が見えづらく、無灯火自転車と出会い頭に衝突する',
-          '道路右側に寄せて停車しようとして、対向車や後続バイクを巻き込む'
+          '停車車両の死角から子どもが急に飛び出して接触する',
+          '配達先番地を探して脇見運転になりブレーキが遅れる',
+          '夕暮れ時で歩行者や無灯火自転車の発見が遅れる'
         ],
-        measures: [
-          '駐車車両や電柱の横を通過する際は時速20km以下に徐行し、いつでも止まれる構えをとる',
-          '日没30分前には早めにヘッドライトを点灯し、周囲に自車の存在を知らせる',
-          '原則として進行方向左側（順方向）に停車し、死角を減らしてから降車する'
+        actions: [
+          '停車車両の横を通過する際は、いつでも止まれる速度まで最徐行する',
+          '車両の隙間やタイヤの下の影を見て人の気配を確認する',
+          '住所確認は必ず完全に停車してから行い、走行中は前方に集中する'
         ],
-        pointing: '死角の影・早めのライト点灯、よし！',
-        svg: `<svg viewBox="0 0 360 120" class="w-full max-w-md h-28">
-          <rect width="360" height="120" fill="#1e293b"/>
-          <rect x="0" y="75" width="360" height="45" fill="#334155"/>
-          <line x1="0" y1="97" x2="360" y2="97" stroke="#94a3b8" stroke-width="2" stroke-dasharray="10,8"/>
-          <circle cx="310" cy="28" r="14" fill="#f59e0b" opacity="0.6"/>
-          <rect x="145" y="52" width="55" height="28" rx="4" fill="#64748b"/>
-          <text x="152" y="70" fill="#f8fafc" font-size="9" font-weight="bold">駐車車両</text>
-          <circle cx="135" cy="62" r="5" fill="#f43f5e"/>
-          <line x1="135" y1="67" x2="135" y2="80" stroke="#f43f5e" stroke-width="3"/>
-          <path d="M135 82 L120 92" stroke="#f43f5e" stroke-width="2" marker-end="url(#arrow)"/>
-          <text x="80" y="52" fill="#fda4af" font-size="10" font-weight="bold">⚠️ 死角から飛び出し!</text>
-          <rect x="30" y="64" width="75" height="34" rx="5" fill="#0284c7"/>
-          <text x="42" y="85" fill="#ffffff" font-size="10" font-weight="bold">軽貨物バン</text>
-          <polygon points="105,78 145,68 145,92" fill="#fde047" opacity="0.25"/>
+        defaultCall: '死角の通過は最徐行・足元確認、よし！',
+        svg: `<svg viewBox="0 0 400 130" class="w-full max-h-36">
+          <rect width="400" height="130" fill="#1e293b"/>
+          <rect y="95" width="400" height="35" fill="#334155"/>
+          <line x1="0" y1="112" x2="400" y2="112" stroke="#94a3b8" stroke-dasharray="10,10" stroke-width="2"/>
+          <rect x="170" y="55" width="85" height="42" rx="6" fill="#475569" stroke="#94a3b8" stroke-width="2"/>
+          <circle cx="188" cy="97" r="8" fill="#0f172a"/><circle cx="238" cy="97" r="8" fill="#0f172a"/>
+          <text x="183" y="80" fill="#cbd5e1" font-size="11" font-weight="bold">停車車両</text>
+          <circle cx="268" cy="68" r="7" fill="#fbbf24"/>
+          <line x1="268" y1="75" x2="268" y2="95" stroke="#fbbf24" stroke-width="3"/>
+          <path d="M268 82 L285 92" stroke="#fbbf24" stroke-width="3"/>
+          <text x="275" y="60" fill="#fde047" font-size="12" font-weight="bold">⚠️飛び出し!</text>
+          <rect x="40" y="60" width="75" height="37" rx="5" fill="#f59e0b"/>
+          <circle cx="55" cy="97" r="8" fill="#0f172a"/><circle cx="100" cy="97" r="8" fill="#0f172a"/>
+          <text x="53" y="82" fill="#0f172a" font-size="11" font-weight="bold">自車(軽)</text>
+          <path d="M120 78 L160 78" stroke="#f87171" stroke-width="3" stroke-dasharray="4,4"/>
         </svg>`
       },
       {
-        id: 'reverse_park',
-        shortTitle: '② 狭い路地バック',
-        badge: '物損事故ワースト1',
-        title: '② 狭い路地・マンション駐車場でのバック（後退）接触',
-        description: '通り抜けできない行き止まりの住宅街やマンションの狭い駐車場からバックで出る際、車体後方の低い電柱・花壇・後方を通過する歩行者や宅配ボックスの庇に接触するリスクがある状況。',
+        id: 's2',
+        shortTitle: '② 狭い路地でのバック駐車',
+        title: '狭い路地での後退（バック）駐車・死角の接触',
+        desc: '幅員の狭い生活道路で、配達先近くにバックで寄せて停車しようとしています。後方には電柱や低いブロック塀、さらに死角から歩行者が近づく恐れがあります。',
         hazards: [
-          'バックモニターだけを過信して目視確認を怠り、死角の低いブロック塀や電柱に衝突する',
-          '荷室に荷物を満載していてルームミラーの視界がゼロになり、後方の歩行者に気づかない',
-          'ハイルーフ車の屋根の高さを忘れ、マンションの庇や看板にルーフを擦る'
+          'バックモニターに映らない上部の庇（ひさし）や電柱に接触する',
+          '死角に入った歩行者・自転車・幼児に気づかず後退する',
+          '焦ってハンドルを早く切りすぎ、左前輪付近をブロック塀に擦る'
         ],
-        measures: [
-          'バックする前に必ず一度降車し、車両後方の障害物・高さ・路面の段差を自分の目で確認する',
-          '後退時はハザードを点灯し、時速5km以下の最徐行で「少し下がっては止まる」を徹底する',
-          '可能な限り頭から突っ込まず、バックで駐車できる場所を選んで前進で出庫する'
+        actions: [
+          'バック前に一度降車して後方の障害物と高さを目視確認する',
+          'ハザード点灯・窓を開けて周囲の音を聞きながら超低速で後退する',
+          '危険を感じたら無理せず切り返し、モニターと両サイドミラーを交互に見る'
         ],
-        pointing: '降車して後方・上部確認、よし！',
-        svg: `<svg viewBox="0 0 360 120" class="w-full max-w-md h-28">
-          <rect width="360" height="120" fill="#1e293b"/>
-          <rect x="250" y="25" width="80" height="75" fill="#475569"/>
-          <text x="260" y="45" fill="#e2e8f0" font-size="10" font-weight="bold">建物・庇</text>
-          <rect x="225" y="72" width="12" height="28" fill="#ef4444"/>
-          <text x="200" y="65" fill="#fca5a5" font-size="9" font-weight="bold">⚠️ 低いポール</text>
-          <rect x="95" y="60" width="85" height="38" rx="5" fill="#0284c7"/>
-          <text x="112" y="83" fill="#ffffff" font-size="10" font-weight="bold">軽貨物バン</text>
-          <path d="M185 80 L218 80" stroke="#f59e0b" stroke-width="3" stroke-dasharray="4,3"/>
-          <text x="175" y="50" fill="#fde047" font-size="10" font-weight="bold">◀ バック死角</text>
+        defaultCall: 'バック前の降車確認・ミラー目視、よし！',
+        svg: `<svg viewBox="0 0 400 130" class="w-full max-h-36">
+          <rect width="400" height="130" fill="#1e293b"/>
+          <rect x="310" y="20" width="16" height="90" fill="#64748b"/>
+          <text x="295" y="15" fill="#cbd5e1" font-size="11" font-weight="bold">電柱・塀</text>
+          <rect x="130" y="55" width="85" height="42" rx="5" fill="#f59e0b"/>
+          <circle cx="148" cy="97" r="8" fill="#0f172a"/><circle cx="198" cy="97" r="8" fill="#0f172a"/>
+          <text x="148" y="80" fill="#0f172a" font-size="11" font-weight="bold">自車(後退)</text>
+          <path d="M225 76 L295 76" stroke="#f87171" stroke-width="3"/>
+          <polygon points="295,76 285,70 285,82" fill="#f87171"/>
+          <text x="225" y="62" fill="#fca5a5" font-size="12" font-weight="bold">死角エリア注意!</text>
         </svg>`
       },
       {
-        id: 'rain_slip',
-        shortTitle: '③ 雨天スリップ',
-        badge: '制動距離1.5倍',
-        title: '③ 雨天・夜間走行時のマンホール・白線でのスリップ追突',
-        description: '雨の日の夜間、対向車のヘッドライトで路面がギラギラと反射し、横断歩道の白線や鉄製マンホールの上でブレーキを踏んだ際にタイヤが滑って制動距離が伸びる状況。',
+        id: 's3',
+        shortTitle: '③ 雨天のマンホール・白線',
+        title: '雨天・夜間のスリップ＆視界不良による追突',
+        desc: '雨が降り始め、路面が濡れて光っています。前方の信号が黄色に変わり、横断歩道の白線や鉄製マンホールの上でブレーキを踏む場面です。',
         hazards: [
-          '晴天時と同じ車間距離で走行しているため、前車の急ブレーキに間に合わず追突する',
-          '濡れたマンホールや白線の上でハンドルとブレーキを同時に操作し、横滑りする',
-          '雨粒と対向車のライトの乱反射（蒸発現象）で、横断歩道上の歩行者を見落とす'
+          '濡れたマンホールや白線上でタイヤが滑り制動距離が伸びる',
+          '対向車のヘッドライトが路面に反射し横断歩行者が見えなくなる',
+          '前車の急ブレーキに反応が遅れて追突する'
         ],
-        measures: [
-          '雨天時は車間距離を晴天時の1.5〜2倍確保し、早め・優しめのポンピングブレーキを行う',
-          'マンホール・鉄板・白線の上では急ブレーキ・急ハンドルを絶対に切らない',
-          '交差点手前では必ずアクセルを離し、歩行者の有無を左右首振りで確認する'
+        actions: [
+          '晴天時の1.5倍〜2倍の車間距離を確保し、早めにアクセルをオフにする',
+          'マンホールや白線の手前で十分に減速を終わらせる',
+          'ワイパーゴムとタイヤ溝を事前点検し、早めのライト点灯を徹底する'
         ],
-        pointing: '雨天車間距離2倍・早めブレーキ、よし！',
-        svg: `<svg viewBox="0 0 360 120" class="w-full max-w-md h-28">
-          <rect width="360" height="120" fill="#0f172a"/>
-          <line x1="50" y1="15" x2="42" y2="35" stroke="#38bdf8" stroke-width="1.5"/>
-          <line x1="120" y1="20" x2="112" y2="40" stroke="#38bdf8" stroke-width="1.5"/>
-          <line x1="210" y1="12" x2="202" y2="32" stroke="#38bdf8" stroke-width="1.5"/>
-          <line x1="290" y1="18" x2="282" y2="38" stroke="#38bdf8" stroke-width="1.5"/>
-          <rect x="0" y="80" width="360" height="40" fill="#1e293b"/>
-          <rect x="230" y="62" width="75" height="32" rx="4" fill="#64748b"/>
-          <text x="248" y="82" fill="#fff" font-size="10" font-weight="bold">先行車</text>
-          <rect x="40" y="62" width="80" height="32" rx="4" fill="#0284c7"/>
-          <text x="58" y="82" fill="#fff" font-size="10" font-weight="bold">自車</text>
-          <line x1="125" y1="78" x2="225" y2="78" stroke="#f43f5e" stroke-width="2" stroke-dasharray="5,4"/>
-          <text x="135" y="68" fill="#fda4af" font-size="9" font-weight="bold">⚠️ 濡れた路面・制動延長</text>
+        defaultCall: '雨天は車間2倍・早めの減速、よし！',
+        svg: `<svg viewBox="0 0 400 130" class="w-full max-h-36">
+          <rect width="400" height="130" fill="#0f172a"/>
+          <line x1="60" y1="15" x2="50" y2="35" stroke="#38bdf8" stroke-width="2"/>
+          <line x1="140" y1="10" x2="130" y2="30" stroke="#38bdf8" stroke-width="2"/>
+          <line x1="250" y1="15" x2="240" y2="35" stroke="#38bdf8" stroke-width="2"/>
+          <line x1="330" y1="10" x2="320" y2="30" stroke="#38bdf8" stroke-width="2"/>
+          <rect y="95" width="400" height="35" fill="#1e293b"/>
+          <ellipse cx="230" cy="110" rx="28" ry="6" fill="#64748b" stroke="#38bdf8" stroke-width="1.5"/>
+          <text x="195" y="88" fill="#7dd3fc" font-size="11" font-weight="bold">濡れたマンホール</text>
+          <rect x="65" y="55" width="80" height="40" rx="5" fill="#f59e0b"/>
+          <text x="82" y="79" fill="#0f172a" font-size="11" font-weight="bold">スリップ注意</text>
         </svg>`
       },
       {
-        id: 'door_wind',
-        shortTitle: '④ ドア強風・盗難',
-        badge: '車両損傷・誤発進',
-        title: '④ 強風時のドア開閉パンチ＆エンジンかけっぱなし離車',
-        description: '配達先へ駆け足で向かう際、強い突風に煽られてドアが隣の車に激突するリスクや、サイドブレーキの引き忘れ・エンジンをかけたまま車を離れることによる自走事故リスクがある状況。',
+        id: 's4',
+        shortTitle: '④ マンション階段・台車荷役',
+        title: '階段昇降・台車搬送時の転倒＆荷物破損',
+        desc: 'エレベーターのないマンション3階へ飲料ケース（重量物）を抱えて階段を上がる場面、および傾斜のあるスロープで台車を引く場面です。',
         hazards: [
-          '強風の中で片手でドアを開けたため、風圧でドアが全開になり隣車や壁にぶつかる',
-          '「すぐ戻るから」とPレンジ・サイドブレーキを甘くして降車し、車両が勝手に動き出す',
-          '鍵をつけたまま離車し、車両盗難や積荷の盗難被害に遭う'
+          '荷物で足元が見えず、階段の段差を踏み外して転落・捻挫する',
+          'スロープで台車のストッパーが外れ、台車が暴走して第三者に衝突する',
+          '無理な中腰姿勢で重い荷物を持ち上げ、ぎっくり腰になる'
         ],
-        measures: [
-          'ドアを開ける際は必ず両手でドアノブと内張りをしっかり保持し、少しずつ開ける',
-          '降車時は「Pレンジ・サイドブレーキ確実・エンジン停止・施錠」の4点を指差し確認する'
+        actions: [
+          '視界を塞ぐほど荷物を積み上げず、2回に分けて足元を見ながら運ぶ',
+          '台車から離れる際は1秒でも必ずストッパーをロックする',
+          '重量物は膝を曲げて身体に引き寄せてから持ち上げる'
         ],
-        pointing: 'Pレンジ・サイド・エンジン停止・施錠、よし！',
-        svg: `<svg viewBox="0 0 360 120" class="w-full max-w-md h-28">
-          <rect width="360" height="120" fill="#1e293b"/>
-          <path d="M30 35 Q80 25 130 35" stroke="#38bdf8" stroke-width="2" fill="none"/>
-          <path d="M40 48 Q90 38 140 48" stroke="#38bdf8" stroke-width="2" fill="none"/>
-          <text x="45" y="24" fill="#7dd3fc" font-size="10" font-weight="bold">🌬️ 強風・突風</text>
-          <rect x="110" y="60" width="90" height="38" rx="5" fill="#0284c7"/>
-          <line x1="150" y1="60" x2="130" y2="35" stroke="#f59e0b" stroke-width="4"/>
-          <rect x="225" y="60" width="85" height="38" rx="5" fill="#64748b"/>
-          <text x="145" y="32" fill="#fde047" font-size="9" font-weight="bold">⚠️ ドアパンチ・自走注意</text>
+        defaultCall: '足元視界確保・台車ロック徹底、よし！',
+        svg: `<svg viewBox="0 0 400 130" class="w-full max-h-36">
+          <rect width="400" height="130" fill="#1e293b"/>
+          <path d="M180 115 L230 115 L230 90 L280 90 L280 65 L330 65 L330 40 L380 40" fill="none" stroke="#94a3b8" stroke-width="4"/>
+          <rect x="115" y="45" width="42" height="35" fill="#d97706" stroke="#fef3c7" stroke-width="1.5"/>
+          <text x="120" y="66" fill="#fff" font-size="10" font-weight="bold">飲料箱</text>
+          <circle cx="136" cy="34" r="7" fill="#fbbf24"/>
+          <line x1="136" y1="80" x2="136" y2="112" stroke="#fbbf24" stroke-width="3"/>
+          <text x="45" y="42" fill="#fde047" font-size="12" font-weight="bold">⚠️足元が見えない!</text>
         </svg>`
       },
       {
-        id: 'stairs_cargo',
-        shortTitle: '⑤ 階段・台車荷役',
-        badge: '腰痛・荷物破損',
-        title: '⑤ エレベーターなしマンションの階段搬送＆坂道での台車逸走',
-        description: '飲料水や米などの重量物を抱えて階段を昇降する際、荷物で足元が見えず踏み外すリスクや、傾斜のある歩道で台車のストッパーをかけ忘れて台車が車道へ飛び出す状況。',
+        id: 's5',
+        shortTitle: '⑤ 荷待ち遅延・焦り運転',
+        title: 'センター荷待ち遅延後の「時間指定焦り運転」',
+        desc: '積込拠点での荷待ちにより出発が30分遅れ、午前指定の荷物が多数残っている状況。時計を気にしながら幹線道路から右折しようとしています。',
         hazards: [
-          '荷物を高く積みすぎて前方や足元の段差が見えず、階段を踏み外して転倒・骨折する',
-          '少しの傾斜がある歩道に台車を置いたまま玄関へ入り、台車が転がり落ちて車と衝突する',
-          '中腰のまま重い荷物を持ち上げ、ぎっくり腰で稼働不能になる'
+          '「早く届けなければ」という焦りから、対向車の速度を見誤り無理な右折をする',
+          '黄信号で加速して交差点に進入し、出会い頭の衝突を起こす',
+          '駐車禁止場所や交差点付近に焦って停車し、追突・違反を招く'
         ],
-        measures: [
-          '荷物は顎（あご）より低く持ち、常に足元の段差が見える視界を確保して1段ずつ昇降する',
-          '台車から手を離す際は必ずストッパー（輪止め）をかけ、壁側に平行に置く',
-          '重量物は膝をしっかり曲げて体に密着させて持ち上げる'
+        actions: [
+          '遅延が確定した時点で深呼吸し、法定速度と一時停止を絶対に守る',
+          '右折時は対向車の陰からの二輪車（直進バイク）を必ず確認する',
+          '間に合わない可能性が高い場合は、安全な場所に停めて事前に連絡を入れる'
         ],
-        pointing: '足元視界確保・台車ストッパー確認、よし！',
-        svg: `<svg viewBox="0 0 360 120" class="w-full max-w-md h-28">
-          <rect width="360" height="120" fill="#1e293b"/>
-          <polyline points="60,100 110,100 110,82 160,82 160,64 210,64 210,46 270,46" fill="none" stroke="#94a3b8" stroke-width="3"/>
-          <rect x="125" y="55" width="24" height="22" fill="#d97706"/>
-          <text x="115" y="45" fill="#fde047" font-size="10" font-weight="bold">⚠️ 足元死角・踏み外し</text>
-          <text x="220" y="85" fill="#cbd5e1" font-size="9">階段・台車逸走注意</text>
+        defaultCall: '焦り禁物・右折時の直進バイク確認、よし！',
+        svg: `<svg viewBox="0 0 400 130" class="w-full max-h-36">
+          <rect width="400" height="130" fill="#1e293b"/>
+          <circle cx="75" cy="65" r="32" fill="#0f172a" stroke="#f59e0b" stroke-width="3"/>
+          <line x1="75" y1="65" x2="75" y2="43" stroke="#f87171" stroke-width="3"/>
+          <line x1="75" y1="65" x2="95" y2="65" stroke="#f87171" stroke-width="3"/>
+          <text x="45" y="112" fill="#fca5a5" font-size="11" font-weight="bold">時間指定の焦り</text>
+          <path d="M160 85 Q220 85 250 35" fill="none" stroke="#f59e0b" stroke-width="4"/>
+          <polygon points="250,35 240,42 252,48" fill="#f59e0b"/>
+          <line x1="330" y1="55" x2="220" y2="55" stroke="#38bdf8" stroke-width="3" stroke-dasharray="5,5"/>
+          <text x="235" y="72" fill="#7dd3fc" font-size="11" font-weight="bold">直進バイク死角!</text>
         </svg>`
       },
       {
-        id: 'intersection_turn',
-        shortTitle: '⑥ 交差点右左折',
-        badge: '巻き込み・右直',
-        title: '⑥ 交差点での左折巻き込み＆右折時の対向直進車見落とし',
-        description: 'ナビの案内や次の配達先を探しながら交差点に進入し、左折時に後方から来る自転車・電動キックボードを巻き込むリスクや、右折時に陰から来るバイクを見落とす状況。',
+        id: 's6',
+        shortTitle: '⑥ 車両離脱時のサイド・鍵',
+        title: '短時間停車でのエンジン切り忘れ・サイドブレーキ甘さ',
+        desc: '一軒家の玄関先まで「たった10秒だから」とエンジンをかけたまま、あるいはパーキング・サイドブレーキが甘い状態で降車しようとしています。',
         hazards: [
-          '左折時の幅寄せが甘く、左後方からすり抜けてきた自転車を巻き込む',
-          'スマホやナビの画面に気を取られ、横断歩道の歩行者確認が遅れる',
-          '右折時に右折待ちトラックの陰から直進してくるバイクを見落として衝突する'
+          'わずかな傾斜で車両が勝手に動き出し、民家や歩行者に衝突する',
+          'エンジンをかけたまま離れ、車両盗難や誤発進事故につながる',
+          'ドアを開ける際に後方確認を怠り、通過する自転車と接触する'
         ],
-        measures: [
-          '左折30m手前からウインカーを出し、左ミラーと目視（首振り）で巻き込み確認を徹底する',
-          '走行中のナビ・端末操作は厳禁とし、必ず安全な場所に停車してから確認する',
-          '右折時は対向車の陰にバイクがいる前提で一呼吸おいてから発進する'
+        actions: [
+          '10秒の配達でも必ず「Pレンジ・サイドブレーキ・エンジン停止・施錠」を行う',
+          'ドアを開ける前にサイドミラーと目視で後方確認し、2段階開閉する',
+          '坂道ではタイヤを縁石側へ少し切って輪止め意識を持つ'
         ],
-        pointing: '左後方目視・横断歩道左右確認、よし！',
-        svg: `<svg viewBox="0 0 360 120" class="w-full max-w-md h-28">
-          <rect width="360" height="120" fill="#1e293b"/>
-          <rect x="130" y="0" width="100" height="120" fill="#334155"/>
-          <rect x="0" y="35" width="360" height="50" fill="#334155"/>
-          <rect x="185" y="65" width="32" height="45" rx="4" fill="#0284c7"/>
-          <path d="M201 65 Q201 48 235 48" stroke="#f59e0b" stroke-width="3" fill="none"/>
-          <circle cx="222" cy="75" r="5" fill="#f43f5e"/>
-          <text x="235" y="78" fill="#fda4af" font-size="9" font-weight="bold">⚠️ 自転車巻き込み!</text>
+        defaultCall: 'Pレンジ・サイド・エンジン停止・施錠、よし！',
+        svg: `<svg viewBox="0 0 400 130" class="w-full max-h-36">
+          <rect width="400" height="130" fill="#1e293b"/>
+          <line x1="20" y1="85" x2="380" y2="115" stroke="#64748b" stroke-width="4"/>
+          <g transform="rotate(5 180 75)">
+            <rect x="130" y="45" width="90" height="42" rx="6" fill="#f59e0b"/>
+            <circle cx="150" cy="87" r="9" fill="#0f172a"/><circle cx="200" cy="87" r="9" fill="#0f172a"/>
+            <text x="145" y="70" fill="#0f172a" font-size="11" font-weight="bold">無人で前進!</text>
+          </g>
+          <path d="M235 78 L295 84" stroke="#f87171" stroke-width="3"/>
+          <text x="240" y="65" fill="#fca5a5" font-size="12" font-weight="bold">⚠️サイド甘い!</text>
         </svg>`
       },
       {
-        id: 'fatigue_rush',
-        shortTitle: '⑦ 荷待ち・焦り運転',
-        badge: '時間指定プレッシャー',
-        title: '⑦ 荷待ち遅延・時間指定ギリギリによる焦り＆スピード超過',
-        description: '積込拠点での荷待ちや交通渋滞により時間指定枠（14-16時、18-20時など）の終了が迫り、「急いで取り戻さなければ」という焦りから一時停止不履行や速度超過に陥る状況。',
+        id: 's7',
+        shortTitle: '⑦ 交差点左折時の巻き込み',
+        title: '交差点左折時の自転車・歩行者巻き込み事故',
+        desc: '交通量の多い幹線道路から左折して脇道に入ろうとしています。左後方には歩道や路側帯を走る電動アシスト自転車が並走しているかもしれません。',
         hazards: [
-          '時間指定に間に合わせるため住宅街でスピードを出しすぎ、一時停止を止まりきらない',
-          '焦りから誤配（隣の部屋・番地違いへの投函）や不在票の記入ミスを起こす',
-          '水分補給や休憩を抜いて連続運転し、集中力低下による追突事故を起こす'
+          '左折直前の幅寄せが甘く、左側の隙間に入り込んだ自転車を巻き込む',
+          'ミラーの死角に入った歩行者を見落とし、横断歩道上で接触する',
+          '左折先の歩行者信号が青で、横断者待ちで停止した際に後続車に追突される'
         ],
-        measures: [
-          '遅延が見込まれた時点で早めに荷主・お客様へ連絡を入れ、無理なスピード回復をしない',
-          '一時停止標識ではタイヤが完全に止まるまで3秒停止し、左右の安全を確認する',
-          '表札・部屋番号・宛名の3点指差し確認を徹底し、誤配による二度手間を防ぐ'
+        actions: [
+          '交差点の30m手前から早めに左へ幅寄せし、二輪車の進入スペースを塞ぐ',
+          '左折の瞬間はミラーだけでなく必ず「左後ろの目視（首振り確認）」を行う',
+          '横断歩道の手前ではいつでも止まれる速度まで十分に減速する'
         ],
-        pointing: '一時停止3秒・宛名3点確認、よし！',
-        svg: `<svg viewBox="0 0 360 120" class="w-full max-w-md h-28">
-          <rect width="360" height="120" fill="#1e293b"/>
-          <polygon points="90,30 130,30 110,65" fill="#ef4444" stroke="#fff" stroke-width="2"/>
-          <text x="98" y="45" fill="#fff" font-size="9" font-weight="bold">止まれ</text>
-          <circle cx="240" cy="48" r="22" fill="#0f172a" stroke="#f59e0b" stroke-width="3"/>
-          <line x1="240" y1="48" x2="240" y2="34" stroke="#f59e0b" stroke-width="2"/>
-          <line x1="240" y1="48" x2="252" y2="48" stroke="#f59e0b" stroke-width="2"/>
-          <text x="195" y="88" fill="#fde047" font-size="10" font-weight="bold">⚠️ 時間指定の焦り・不停止</text>
+        defaultCall: '早めの幅寄せ・左後方直接目視、よし！',
+        svg: `<svg viewBox="0 0 400 130" class="w-full max-h-36">
+          <rect width="400" height="130" fill="#1e293b"/>
+          <rect x="140" y="55" width="80" height="40" rx="5" fill="#f59e0b"/>
+          <path d="M220 75 Q265 75 265 115" fill="none" stroke="#f59e0b" stroke-width="4"/>
+          <circle cx="195" cy="108" r="6" fill="#38bdf8"/>
+          <path d="M160 108 L235 108" stroke="#38bdf8" stroke-width="2.5" stroke-dasharray="4,3"/>
+          <text x="150" y="42" fill="#fde047" font-size="12" font-weight="bold">⚠️左後方の並走自転車!</text>
         </svg>`
       },
       {
-        id: 'loading_collapse',
-        shortTitle: '⑧ 荷崩れ・バックドア',
-        badge: '積載・荷室管理',
-        title: '⑧ 走行中の荷崩れ＆傾斜地でのバックドア開閉時の荷物落下',
-        description: '朝一番に荷物を高く積み上げた際、カーブやブレーキで荷崩れが起きるリスクや、坂道に停めてバックドアを開けた瞬間に重い箱が滑り落ちて頭や足に直撃する状況。',
+        id: 's8',
+        shortTitle: '⑧ 自由テーマ（現場のヒヤリ）',
+        title: '自由設定（今月自分が体験したヒヤリハット・独自テーマ）',
+        desc: '今月の業務の中で実際に「ヒヤッとした」「ハッとした」出来事や、担当エリア特有の危険箇所（工事現場・通学路・急坂など）をテーマに設定して分析します。',
         hazards: [
-          '重い荷物を上に積んだため、カーブで荷崩れして壊れ物（精密機器・瓶類）を破損する',
-          '傾斜地でバックドアを一気に開けたため、荷室から箱が落下して足や顔面に当たる',
-          '運転席と荷室の間に置いた荷物がブレーキ時に足元へ転がり、ブレーキペダルの下に挟まる'
+          '慣れた道で「いつも通り大丈夫だろう」と油断して確認を省略する',
+          '道路工事や路上駐車で車線が狭くなり、対向車とすれ違い接触する',
+          '疲労や睡眠不足により集中力が低下し、判断が一瞬遅れる'
         ],
-        measures: [
-          '積載の基本「重いものは下・軽いものは上・隙間をなくす」を徹底する',
-          '運転席の足元や助手席には絶対に転がりやすい荷物やペットボトルを置かない',
-          'バックドアを開ける際は一歩横に立ち、荷崩れがないか隙間から覗いてから全開にする'
+        actions: [
+          '「だろう運転」をやめ、「かもしれない運転」で危険箇所を手前から予測する',
+          '狭いすれ違い箇所では無理に突っ込まず、手前で停止して相手を先に通す',
+          '眠気や疲労を感じたら10分でも安全な場所で休憩・仮眠をとる'
         ],
-        pointing: '足元異物なし・ドア開閉一歩横立ち、よし！',
-        svg: `<svg viewBox="0 0 360 120" class="w-full max-w-md h-28">
-          <rect width="360" height="120" fill="#1e293b"/>
-          <rect x="90" y="45" width="110" height="55" rx="4" fill="#334155" stroke="#94a3b8" stroke-width="2"/>
-          <rect x="100" y="75" width="35" height="22" fill="#0284c7"/>
-          <rect x="140" y="75" width="35" height="22" fill="#0284c7"/>
-          <rect x="155" y="50" width="30" height="22" transform="rotate(22 155 50)" fill="#f59e0b"/>
-          <text x="210" y="65" fill="#fde047" font-size="10" font-weight="bold">⚠️ 荷崩れ・落下直撃</text>
-          <text x="210" y="82" fill="#cbd5e1" font-size="9">ペダル下転がり厳禁</text>
+        defaultCall: 'かもしれない運転・危険箇所の手前減速、よし！',
+        svg: `<svg viewBox="0 0 400 130" class="w-full max-h-36">
+          <rect width="400" height="130" fill="#1e293b"/>
+          <polygon points="200,22 250,105 150,105" fill="#f59e0b" stroke="#fef3c7" stroke-width="3"/>
+          <text x="193" y="88" fill="#0f172a" font-size="44" font-weight="black">!</text>
+          <text x="115" y="122" fill="#fde047" font-size="12" font-weight="bold">現場のヒヤリハットを事故前に防ぐ</text>
         </svg>`
       }
     ];
 
-    let selectedScenarioId = KYT_SCENARIOS[0].id;
-    let selectedKytDate = getTodayStr();
+    let selectedDate = getTodayStr();
+    let currentScenarioId = 's1';
 
     function getTodayStr() {
       const d = new Date();
       return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     }
 
-    function getKytSettings() {
+    function getSettings() {
       try {
-        return JSON.parse(localStorage.getItem(KYT_SETTINGS_KEY)) || { driver: '', company: '', vehicle: '', gasUrl: '' };
-      } catch (e) {
-        return { driver: '', company: '', vehicle: '', gasUrl: '' };
-      }
+        const s = JSON.parse(localStorage.getItem(KYT_SETTINGS_KEY));
+        if (s && typeof s === 'object') return s;
+      } catch (e) {}
+      return { driver: '', vehicle: '', company: '', manager: '自主訓練', gasUrl: '' };
     }
 
-    function saveKytSettings() {
+    function saveSettings() {
       const s = {
-        driver: (document.getElementById('cfgKytDriver')?.value || '').trim(),
-        company: (document.getElementById('cfgKytCompany')?.value || '').trim(),
-        vehicle: (document.getElementById('cfgKytVehicle')?.value || '').trim(),
-        gasUrl: (document.getElementById('cfgKytGasUrl')?.value || '').trim()
+        driver: (document.getElementById('cfgDriverName').value || '').trim(),
+        vehicle: (document.getElementById('cfgVehicleNo').value || '').trim(),
+        company: (document.getElementById('cfgCompany').value || '').trim(),
+        manager: (document.getElementById('cfgManager').value || '').trim() || '自主訓練',
+        gasUrl: (document.getElementById('cfgGasUrl').value || '').trim()
       };
       localStorage.setItem(KYT_SETTINGS_KEY, JSON.stringify(s));
-      updateHeaderAndPrintMeta();
+      updateHeaderInfo();
+      updatePrintPreview();
     }
 
-    function getAllKytRecords() {
+    function loadSettings() {
+      const s = getSettings();
+      document.getElementById('cfgDriverName').value = s.driver || '';
+      document.getElementById('cfgVehicleNo').value = s.vehicle || '';
+      document.getElementById('cfgCompany').value = s.company || '';
+      document.getElementById('cfgManager').value = s.manager || '自主訓練';
+      document.getElementById('cfgGasUrl').value = s.gasUrl || '';
+      updateHeaderInfo();
+    }
+
+    function updateHeaderInfo() {
+      const s = getSettings();
+      const d = s.driver || '未設定';
+      const v = s.vehicle || '未設定';
+      document.getElementById('headerUserInfo').textContent = `実施者: ${d} | 車両: ${v}`;
+    }
+
+    function getAllRecords() {
       try {
-        return JSON.parse(localStorage.getItem(KYT_STORAGE_KEY)) || [];
+        return JSON.parse(localStorage.getItem(KYT_STORAGE_KEY)) || {};
       } catch (e) {
-        return [];
+        return {};
       }
     }
 
-    function saveAllKytRecords(list) {
-      localStorage.setItem(KYT_STORAGE_KEY, JSON.stringify(list));
+    function saveAllRecords(records) {
+      localStorage.setItem(KYT_STORAGE_KEY, JSON.stringify(records));
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('kytDateInput').value = selectedKytDate;
-      const s = getKytSettings();
-      document.getElementById('cfgKytDriver').value = s.driver || '';
-      document.getElementById('cfgKytCompany').value = s.company || '';
-      document.getElementById('cfgKytVehicle').value = s.vehicle || '';
-      document.getElementById('cfgKytGasUrl').value = s.gasUrl || '';
-
+      document.getElementById('kytDateInput').value = selectedDate;
+      loadSettings();
       renderScenarioButtons();
-      selectScenario(selectedScenarioId);
-      updateHeaderAndPrintMeta();
+      selectScenario('s1', true);
+      loadRecordForDate(selectedDate);
       renderHistoryList();
+      updatePrintPreview();
 
-      const updateScrollBtn = () => {
-        const btn = document.getElementById('btnScrollTop');
-        if (!btn) return;
-        const top = Math.max(window.scrollY || 0, document.documentElement.scrollTop || 0, document.body.scrollTop || 0);
-        if (top > 80) {
-          btn.classList.remove('opacity-0', 'pointer-events-none');
-          btn.classList.add('opacity-100');
-        } else {
-          btn.classList.add('opacity-0', 'pointer-events-none');
-          btn.classList.remove('opacity-100');
-        }
-      };
-      window.addEventListener('scroll', updateScrollBtn, { passive: true });
-      window.addEventListener('touchmove', updateScrollBtn, { passive: true });
+      window.addEventListener('scroll', handleScrollTopVisibility, { passive: true, capture: true });
+      document.addEventListener('scroll', handleScrollTopVisibility, { passive: true, capture: true });
+      window.addEventListener('touchmove', handleScrollTopVisibility, { passive: true });
     });
 
-    function onKytDateChanged(val) {
-      selectedKytDate = val;
-      updateHeaderAndPrintMeta();
+    function handleScrollTopVisibility() {
+      const btn = document.getElementById('btnScrollTop');
+      if (!btn) return;
+      const scrollPos = Math.max(window.scrollY || 0, document.documentElement.scrollTop || 0, document.body.scrollTop || 0);
+      if (scrollPos > 80) {
+        btn.classList.remove('opacity-0', 'pointer-events-none');
+        btn.classList.add('opacity-100', 'pointer-events-auto');
+      } else {
+        btn.classList.add('opacity-0', 'pointer-events-none');
+        btn.classList.remove('opacity-100', 'pointer-events-auto');
+      }
     }
 
-    function updateHeaderAndPrintMeta() {
-      const s = getKytSettings();
-      const recs = getAllKytRecords();
-      document.getElementById('headerUserInfo').textContent = `実施者: ${s.driver || '未設定'} | 累計実施: ${recs.length}回`;
-
-      document.getElementById('prKytDate').textContent = selectedKytDate;
-      document.getElementById('prKytCompany').textContent = s.company || '未設定';
-      document.getElementById('prKytDriver').textContent = s.driver || '未設定';
-      document.getElementById('prKytVehicle').textContent = s.vehicle || '未設定';
+    function scrollToTop() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      document.documentElement.scrollTo({ top: 0, behavior: 'smooth' });
+      document.body.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    function switchKytTab(tab) {
-      ['training', 'record', 'history'].forEach(t => {
+    function openChangelogModal() {
+      document.getElementById('changelogModal').classList.remove('hidden');
+    }
+
+    function closeChangelogModal() {
+      document.getElementById('changelogModal').classList.add('hidden');
+    }
+
+    function switchTab(tabId) {
+      ['train', 'history', 'printout'].forEach(t => {
         const btn = document.getElementById(`tab-${t}`);
-        const el = document.getElementById(`content-${t}`);
-        if (t === tab) {
-          btn.className = 'py-2.5 rounded-lg text-center bg-brand-900 text-white transition-colors';
-          el.classList.remove('hidden');
+        const content = document.getElementById(`content-${t}`);
+        if (t === tabId) {
+          btn.className = 'py-3 rounded-xl text-center bg-amber-500 text-slate-950 shadow-sm transition-colors';
+          content.classList.remove('hidden');
         } else {
-          btn.className = 'py-2.5 rounded-lg text-center hover:text-slate-900 transition-colors';
-          el.classList.add('hidden');
+          btn.className = 'py-3 rounded-xl text-center hover:bg-slate-50 transition-colors';
+          content.classList.add('hidden');
         }
       });
-      if (tab === 'record') {
-        syncPrintPreview();
-      }
-      if (tab === 'history') {
-        renderHistoryList();
-      }
+      if (tabId === 'history') renderHistoryList();
+      if (tabId === 'printout') updatePrintPreview();
+    }
+
+    function onDateChange(val) {
+      selectedDate = val || getTodayStr();
+      loadRecordForDate(selectedDate);
+      updatePrintPreview();
     }
 
     function renderScenarioButtons() {
-      const grid = document.getElementById('scenarioButtonsGrid');
-      grid.innerHTML = KYT_SCENARIOS.map(sc => `
-        <button type="button" onclick="selectScenario('${sc.id}')" id="btn-sc-${sc.id}" class="p-2 rounded-lg border text-left transition-all ${sc.id === selectedScenarioId ? 'bg-amber-500 text-slate-950 border-amber-600 shadow-sm font-black' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'}">
-          ${sc.shortTitle}
-        </button>
-      `).join('');
+      const grid = document.getElementById('scenarioGrid');
+      grid.innerHTML = SCENARIOS.map(sc => {
+        const active = sc.id === currentScenarioId;
+        return `
+          <button type="button" onclick="selectScenario('${sc.id}', false)" class="p-3.5 rounded-xl border-2 text-left font-extrabold text-sm sm:text-base transition-all ${
+            active
+              ? 'bg-amber-50 border-amber-500 text-amber-950 shadow-sm'
+              : 'bg-slate-50 border-slate-200 text-slate-800 hover:bg-slate-100'
+          }">
+            ${sc.shortTitle}
+          </button>
+        `;
+      }).join('');
     }
 
-    function selectScenario(id) {
-      selectedScenarioId = id;
+    function selectScenario(id, isInitial) {
+      currentScenarioId = id;
+      const sc = SCENARIOS.find(s => s.id === id) || SCENARIOS[0];
       renderScenarioButtons();
-      const sc = KYT_SCENARIOS.find(x => x.id === id) || KYT_SCENARIOS[0];
 
-      document.getElementById('sceneBadge').textContent = sc.badge;
-      document.getElementById('sceneTitle').textContent = sc.title;
-      document.getElementById('sceneDescription').textContent = sc.description;
-      document.getElementById('sceneIllustrationBox').innerHTML = sc.svg;
+      const idx = SCENARIOS.findIndex(s => s.id === id) + 1;
+      document.getElementById('activeScenarioBadge').textContent = `シナリオ #${idx}`;
+      document.getElementById('activeScenarioTitle').textContent = sc.title;
+      document.getElementById('activeScenarioDesc').textContent = sc.desc;
+      document.getElementById('scenarioSvgBox').innerHTML = sc.svg;
 
-      // 危険要因チップ
-      document.getElementById('hazardChipsContainer').innerHTML = sc.hazards.map((h, idx) => `
-        <button type="button" onclick="appendText('kytHazardsInput', '${h.replace(/'/g, "\\'")}')" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-900 border border-rose-200 rounded text-[11px] text-left leading-tight">
-          ＋ 危険候補${idx + 1}
+      document.getElementById('hazardChips').innerHTML = sc.hazards.map(h => `
+        <button type="button" onclick="appendText('inputHazard', '${h.replace(/'/g, "\\'")}')" class="py-2 px-3 bg-rose-50 hover:bg-rose-100 active:bg-rose-200 text-rose-900 border border-rose-300 rounded-xl text-sm font-bold text-left leading-snug">
+          ＋ ${h}
         </button>
       `).join('');
 
-      // 対策チップ
-      document.getElementById('countermeasureChipsContainer').innerHTML = sc.measures.map((m, idx) => `
-        <button type="button" onclick="appendText('kytMeasuresInput', '${m.replace(/'/g, "\\'")}')" class="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 rounded text-[11px] text-left leading-tight">
-          ＋ 対策候補${idx + 1}
+      document.getElementById('countermeasureChips').innerHTML = sc.actions.map(a => `
+        <button type="button" onclick="appendText('inputAction', '${a.replace(/'/g, "\\'")}')" class="py-2 px-3 bg-emerald-50 hover:bg-emerald-100 active:bg-emerald-200 text-emerald-900 border border-emerald-300 rounded-xl text-sm font-bold text-left leading-snug">
+          ＋ ${a}
         </button>
       `).join('');
 
-      // 指差し呼称候補
-      const calls = [sc.pointing, '一時停止・左右確認、よし！', '降車前・後方安全確認、よし！', '焦らず安全運転、よし！'];
-      document.getElementById('pointingChipsContainer').innerHTML = calls.map(c => `
-        <button type="button" onclick="setPointingCall('${c.replace(/'/g, "\\'")}')" class="px-2 py-0.5 bg-white hover:bg-amber-100 text-amber-950 border border-amber-300 rounded text-[10px] font-bold">
-          👉 ${c}
-        </button>
-      `).join('');
-
-      if (!document.getElementById('kytPointingCallInput').value) {
-        document.getElementById('kytPointingCallInput').value = sc.pointing;
+      if (!isInitial) {
+        document.getElementById('inputPointingCall').value = sc.defaultCall;
+        saveDraft();
       }
-      syncPrintPreview();
-    }
-
-    function pickRandomScenario() {
-      const others = KYT_SCENARIOS.filter(s => s.id !== selectedScenarioId);
-      const picked = others[Math.floor(Math.random() * others.length)];
-      document.getElementById('kytHazardsInput').value = '';
-      document.getElementById('kytMeasuresInput').value = '';
-      document.getElementById('kytPointingCallInput').value = picked.pointing;
-      selectScenario(picked.id);
-      showToast(`ランダム出題：${picked.shortTitle} に切り替えました`, 'info');
     }
 
     function appendText(fieldId, text) {
@@ -785,237 +814,237 @@
       } else if (!cur.includes(text)) {
         el.value = `${cur}\n・${text}`;
       }
-      syncPrintPreview();
-      showToast('項目を追加しました', 'success');
+      saveDraft();
+      showToast('項目を追加しました', 'info');
     }
 
-    function setPointingCall(text) {
-      document.getElementById('kytPointingCallInput').value = text;
-      syncPrintPreview();
+    function saveDraft() {
+      const all = getAllRecords();
+      const sc = SCENARIOS.find(s => s.id === currentScenarioId) || SCENARIOS[0];
+      all[selectedDate] = {
+        date: selectedDate,
+        scenarioId: sc.id,
+        scenarioTitle: sc.title,
+        scenarioDesc: sc.desc,
+        hazard: document.getElementById('inputHazard').value,
+        action: document.getElementById('inputAction').value,
+        pointingCall: document.getElementById('inputPointingCall').value,
+        completedAt: all[selectedDate]?.completedAt || ''
+      };
+      saveAllRecords(all);
+      updatePrintPreview();
     }
 
-    function saveCurrentDraft() {
-      syncPrintPreview();
+    function loadRecordForDate(dateStr) {
+      const all = getAllRecords();
+      const rec = all[dateStr];
+      if (rec) {
+        selectScenario(rec.scenarioId || 's1', true);
+        document.getElementById('inputHazard').value = rec.hazard || '';
+        document.getElementById('inputAction').value = rec.action || '';
+        document.getElementById('inputPointingCall').value = rec.pointingCall || '';
+      } else {
+        const sc = SCENARIOS.find(s => s.id === currentScenarioId) || SCENARIOS[0];
+        document.getElementById('inputHazard').value = '';
+        document.getElementById('inputAction').value = '';
+        document.getElementById('inputPointingCall').value = sc.defaultCall;
+      }
     }
 
-    function syncPrintPreview() {
-      const sc = KYT_SCENARIOS.find(x => x.id === selectedScenarioId) || KYT_SCENARIOS[0];
-      const hazards = document.getElementById('kytHazardsInput').value.trim() || '（未入力）';
-      const measures = document.getElementById('kytMeasuresInput').value.trim() || '（未入力）';
-      const call = document.getElementById('kytPointingCallInput').value.trim() || sc.pointing;
+    async function completeKytRecord(sendCloud) {
+      const hazard = (document.getElementById('inputHazard').value || '').trim();
+      const action = (document.getElementById('inputAction').value || '').trim();
+      const pointingCall = (document.getElementById('inputPointingCall').value || '').trim();
 
-      updateHeaderAndPrintMeta();
-      document.getElementById('prKytTheme').textContent = sc.title;
-      document.getElementById('prKytSceneDesc').textContent = sc.description;
-      document.getElementById('prKytHazards').textContent = hazards;
-      document.getElementById('prKytMeasures').textContent = measures;
-      document.getElementById('prKytPointingCall').textContent = `「${call}」`;
-    }
-
-    function completeKytSession() {
-      const s = getKytSettings();
-      const sc = KYT_SCENARIOS.find(x => x.id === selectedScenarioId) || KYT_SCENARIOS[0];
-      const hazards = document.getElementById('kytHazardsInput').value.trim();
-      const measures = document.getElementById('kytMeasuresInput').value.trim();
-      const call = document.getElementById('kytPointingCallInput').value.trim() || sc.pointing;
-
-      if (!hazards || !measures) {
-        showToast('2R（潜む危険）と3R（具体的な対策）を入力・選択してください', 'error');
+      if (!hazard || !action) {
+        showToast('「予測した危険」と「安全対策」を入力してください', 'error');
         return;
       }
 
+      const all = getAllRecords();
+      const sc = SCENARIOS.find(s => s.id === currentScenarioId) || SCENARIOS[0];
+      const now = new Date();
+      const stamp = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
       const record = {
-        id: Date.now(),
-        date: selectedKytDate,
-        company: s.company || '未設定',
-        driver: s.driver || '未設定',
-        vehicle: s.vehicle || '未設定',
-        themeTitle: sc.title,
-        hazards: hazards,
-        measures: measures,
-        pointingCall: call
+        date: selectedDate,
+        scenarioId: sc.id,
+        scenarioTitle: sc.title,
+        scenarioDesc: sc.desc,
+        hazard,
+        action,
+        pointingCall: pointingCall || sc.defaultCall,
+        completedAt: stamp
       };
 
-      const list = getAllKytRecords();
-      list.unshift(record);
-      saveAllKytRecords(list);
-      updateHeaderAndPrintMeta();
-      renderHistoryList();
-      syncPrintPreview();
-      switchKytTab('record');
-      showToast('指差し呼称完了！安全教育記録を保存しました', 'success');
+      all[selectedDate] = record;
+      saveAllRecords(all);
+      updatePrintPreview();
+
+      if (sendCloud) {
+        const s = getSettings();
+        if (!s.gasUrl) {
+          document.getElementById('settingsAccordion').open = true;
+          showToast('記録を端末に保存しました（シート送信はGAS URL設定後に可能です）', 'info');
+          return;
+        }
+        try {
+          await fetch(s.gasUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              ...record,
+              driver: s.driver || '未設定',
+              vehicle: s.vehicle || '未設定',
+              company: s.company || '未設定',
+              manager: s.manager || '自主訓練'
+            })
+          });
+          showToast('KYT訓練を完了し、スプレッドシートへ送信しました！', 'success');
+        } catch (e) {
+          showToast('端末保存は完了しましたが、クラウド送信でエラーが発生しました', 'error');
+        }
+      } else {
+        showToast('KYT訓練を完了・保存しました！③記録書印刷からPDF出力できます', 'success');
+      }
     }
 
     function renderHistoryList() {
-      const list = getAllKytRecords();
-      const container = document.getElementById('kytHistoryList');
-      if (!list.length) {
-        container.innerHTML = '<p class="text-slate-400 text-center py-6">まだ確定済みのKYT記録はありません。</p>';
+      const all = getAllRecords();
+      const keys = Object.keys(all).sort().reverse();
+      document.getElementById('historyCountBadge').textContent = `全 ${keys.length} 件`;
+      const container = document.getElementById('historyListContainer');
+
+      if (keys.length === 0) {
+        container.innerHTML = `<p class="text-base text-slate-500 py-6 text-center">まだ実施記録がありません。「① KYT訓練」から記録を作成してください。</p>`;
         return;
       }
-      container.innerHTML = list.map(item => `
-        <div class="p-3 rounded-xl border border-slate-200 bg-slate-50 space-y-1.5">
-          <div class="flex items-center justify-between">
-            <span class="font-bold text-slate-900">${item.date} ｜ ${item.driver}</span>
-            <button type="button" onclick="deleteKytRecord(${item.id})" class="text-[10px] text-rose-600 bg-white px-2 py-0.5 rounded border border-rose-200 font-bold">🗑️ 削除</button>
+
+      container.innerHTML = keys.map(k => {
+        const r = all[k];
+        return `
+          <div class="p-4 rounded-2xl border-2 border-slate-200 bg-slate-50 space-y-2">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="text-base font-black text-slate-900">📅 ${r.date}</span>
+              <span class="text-xs px-2.5 py-1 bg-emerald-100 text-emerald-900 font-bold rounded-lg">${r.completedAt ? '完了済' : '下書き'}</span>
+            </div>
+            <div class="text-base font-extrabold text-amber-900">${r.scenarioTitle || ''}</div>
+            <div class="text-sm text-slate-800 bg-white p-2.5 rounded-xl border border-slate-200">
+              <strong>指差し呼称：</strong>「${r.pointingCall || ''}」
+            </div>
+            <div class="flex gap-2 pt-1">
+              <button type="button" onclick="openRecordInPrint('${r.date}')" class="flex-1 py-2.5 px-3 bg-brand-900 text-white font-bold rounded-xl text-sm">
+                📄 記録書を表示・印刷
+              </button>
+              <button type="button" onclick="deleteRecord('${r.date}')" class="py-2.5 px-3 bg-rose-50 text-rose-700 border border-rose-200 font-bold rounded-xl text-sm">
+                🗑️ 削除
+              </button>
+            </div>
           </div>
-          <div class="font-bold text-brand-800">${item.themeTitle}</div>
-          <div class="text-[11px] text-slate-600"><strong>危険:</strong> ${item.hazards.replace(/\n/g, ' ')}</div>
-          <div class="text-[11px] text-slate-600"><strong>対策:</strong> ${item.measures.replace(/\n/g, ' ')}</div>
-          <div class="text-xs font-black text-amber-800 bg-amber-100/80 px-2 py-1 rounded">👉 「${item.pointingCall}」</div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
-    function deleteKytRecord(id) {
-      const list = getAllKytRecords().filter(x => x.id !== id);
-      saveAllKytRecords(list);
-      updateHeaderAndPrintMeta();
+    function openRecordInPrint(dateStr) {
+      selectedDate = dateStr;
+      document.getElementById('kytDateInput').value = dateStr;
+      loadRecordForDate(dateStr);
+      switchTab('printout');
+    }
+
+    function deleteRecord(dateStr) {
+      const all = getAllRecords();
+      delete all[dateStr];
+      saveAllRecords(all);
       renderHistoryList();
-      showToast('履歴を1件削除しました', 'info');
+      showToast(`${dateStr} の記録を削除しました`, 'info');
     }
 
-    function shareKytToLine() {
-      const s = getKytSettings();
-      const sc = KYT_SCENARIOS.find(x => x.id === selectedScenarioId) || KYT_SCENARIOS[0];
-      const hazards = document.getElementById('kytHazardsInput').value.trim() || '未記入';
-      const measures = document.getElementById('kytMeasuresInput').value.trim() || '未記入';
-      const call = document.getElementById('kytPointingCallInput').value.trim() || sc.pointing;
-
-      const text = `【月次KYT・安全教育実施報告】
-実施日: ${selectedKytDate}
-実施者: ${s.driver || '未設定'} (${s.company || ''})
-車両番号: ${s.vehicle || '未設定'}
-━━━━━━━━━━━━━━
-■ 訓練テーマ:
-${sc.title}
-
-■ 想定した危険（2R）:
-${hazards}
-
-■ 決定した安全対策（3R）:
-${measures}
-
-■ 指差し呼称目標（4R）:
-👉「${call}」
-━━━━━━━━━━━━━━
-今月も無事故・無違反で運行いたします。`;
-
-      window.open(`https://line.me/R/msg/text/?${encodeURIComponent(text)}`, '_blank');
-    }
-
-    async function sendKytToSpreadsheet() {
-      const s = getKytSettings();
-      if (!s.gasUrl) {
-        const acc = document.getElementById('kytSettingsAccordion');
-        if (acc) acc.open = true;
-        showToast('KYT専用Googleスプレッドシート連携URLが未設定です。設定欄に入力してください。', 'error');
-        return;
-      }
-
-      const sc = KYT_SCENARIOS.find(x => x.id === selectedScenarioId) || KYT_SCENARIOS[0];
-      const payload = {
-        date: selectedKytDate,
-        company: s.company || '',
-        driver: s.driver || '',
-        vehicle: s.vehicle || '',
-        theme: sc.title,
-        hazards: document.getElementById('kytHazardsInput').value.trim(),
-        measures: document.getElementById('kytMeasuresInput').value.trim(),
-        pointingCall: document.getElementById('kytPointingCallInput').value.trim() || sc.pointing
+    function updatePrintPreview() {
+      const s = getSettings();
+      const all = getAllRecords();
+      const sc = SCENARIOS.find(item => item.id === currentScenarioId) || SCENARIOS[0];
+      const rec = all[selectedDate] || {
+        date: selectedDate,
+        scenarioTitle: sc.title,
+        scenarioDesc: sc.desc,
+        hazard: document.getElementById('inputHazard')?.value || '未入力',
+        action: document.getElementById('inputAction')?.value || '未入力',
+        pointingCall: document.getElementById('inputPointingCall')?.value || sc.defaultCall
       };
 
-      const btn = document.getElementById('btnSendKytGas');
-      try {
-        btn.disabled = true;
-        btn.textContent = '⏳ 送信中...';
-        await fetch(s.gasUrl, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        showToast('KYT実施記録をスプレッドシートへ送信しました！', 'success');
-      } catch (e) {
-        showToast('送信に失敗しました。URLと通信環境を確認してください。', 'error');
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = '<span>📊</span> シート送信';
-      }
+      document.getElementById('prDate').textContent = selectedDate;
+      document.getElementById('prCompany').textContent = s.company || '未設定';
+      document.getElementById('prManager').textContent = s.manager || '自主訓練';
+      document.getElementById('prDriver').textContent = s.driver || '未設定';
+      document.getElementById('prVehicle').textContent = s.vehicle || '未設定';
+
+      document.getElementById('prScenarioTitle').textContent = rec.scenarioTitle || sc.title;
+      document.getElementById('prScenarioDesc').textContent = rec.scenarioDesc || sc.desc;
+      document.getElementById('prHazard').textContent = rec.hazard || '未入力';
+      document.getElementById('prAction').textContent = rec.action || '未入力';
+      document.getElementById('prPointingCall').textContent = `「${rec.pointingCall || sc.defaultCall}」`;
     }
 
     function copyKytGasCode() {
-      const code = `function doPost(e) {
-  try {
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var sheet = ss.getSheetByName("KYT実施記録") || ss.getActiveSheet();
-    sheet.setName("KYT実施記録");
-    var data = JSON.parse(e.postData.contents);
-
-    if (sheet.getLastRow() === 0) {
-      sheet.appendRow(["実施日", "所属・事業者", "実施者氏名", "車両番号", "訓練テーマ", "想定した危険(2R)", "具体的な対策(3R)", "指差し呼称目標(4R)"]);
-      sheet.getRange(1, 1, 1, 8).setBackground("#0f172a").setFontColor("#ffffff").setFontWeight("bold");
+      const lines = [
+        'function doPost(e) {',
+        '  try {',
+        '    var ss = SpreadsheetApp.getActiveSpreadsheet();',
+        '    var sheet = ss.getSheetByName("KYT実施記録") || ss.getActiveSheet();',
+        '    sheet.setName("KYT実施記録");',
+        '    var data = JSON.parse(e.postData.contents);',
+        '',
+        '    if (sheet.getLastRow() === 0) {',
+        '      sheet.appendRow([',
+        '        "実施日", "所属・事業者", "実施運転者", "車両番号", "指導・管理者",',
+        '        "訓練テーマ", "予測した危険要因", "具体的安全対策", "指差し呼称目標", "完了日時"',
+        '      ]);',
+        '      sheet.getRange(1, 1, 1, 10).setBackground("#0f172a").setFontColor("#ffffff").setFontWeight("bold");',
+        '    }',
+        '',
+        '    sheet.appendRow([',
+        '      data.date, data.company, data.driver, data.vehicle, data.manager,',
+        '      data.scenarioTitle, data.hazard, data.action, data.pointingCall, data.completedAt',
+        '    ]);',
+        '',
+        '    return ContentService.createTextOutput(JSON.stringify({status: "success"})).setMimeType(ContentService.MimeType.JSON);',
+        '  } catch (err) {',
+        '    return ContentService.createTextOutput(JSON.stringify({status: "error", message: err.toString()})).setMimeType(ContentService.MimeType.JSON);',
+        '  }',
+        '}'
+      ];
+      const code = lines.join('\n');
+      const ta = document.createElement('textarea');
+      ta.value = code;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast('KYT専用GASコードをコピーしました！', 'success');
     }
 
-    sheet.appendRow([
-      data.date, data.company, data.driver, data.vehicle,
-      data.theme, data.hazards, data.measures, data.pointingCall
-    ]);
-
-    return ContentService.createTextOutput(JSON.stringify({status: "success"})).setMimeType(ContentService.MimeType.JSON);
-  } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({status: "error", message: err.toString()})).setMimeType(ContentService.MimeType.JSON);
-  }
-}`;
-      navigator.clipboard?.writeText(code).then(() => {
-        showToast('KYT専用GASコードをコピーしました！', 'success');
-      });
-    }
-
-    function exportKytCsv() {
-      const list = getAllKytRecords();
-      if (!list.length) {
-        showToast('出力する履歴がありません', 'error');
-        return;
-      }
-      let csv = '\uFEFF実施日,所属,実施者氏名,車両番号,訓練テーマ,想定した危険,具体的な対策,指差し呼称目標\n';
-      list.forEach(r => {
-        csv += [
-          r.date,
-          `"${(r.company || '').replace(/"/g, '""')}"`,
-          `"${(r.driver || '').replace(/"/g, '""')}"`,
-          `"${(r.vehicle || '').replace(/"/g, '""')}"`,
-          `"${(r.themeTitle || '').replace(/"/g, '""')}"`,
-          `"${(r.hazards || '').replace(/"/g, '""')}"`,
-          `"${(r.measures || '').replace(/"/g, '""')}"`,
-          `"${(r.pointingCall || '').replace(/"/g, '""')}"`
-        ].join(',') + '\n';
-      });
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `軽貨物_KYT安全教育記録_${getTodayStr()}.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
-    }
-
-    function showToast(msg, type = 'info') {
+    function showToast(message, type = 'info') {
       const toast = document.getElementById('toastNotification');
+      const msg = document.getElementById('toastMsg');
+      const icon = document.getElementById('toastIcon');
       const content = document.getElementById('toastContent');
-      document.getElementById('toastMsg').textContent = msg;
+      msg.textContent = message;
       if (type === 'success') {
-        document.getElementById('toastIcon').textContent = '✅';
-        content.className = 'p-3 rounded-xl shadow-lg border text-xs font-bold flex items-center gap-2.5 bg-emerald-800 text-white border-emerald-700';
+        icon.textContent = '✅';
+        content.className = 'p-4 rounded-xl shadow-xl border text-sm font-bold flex items-center gap-3 bg-emerald-800 text-white border-emerald-600';
       } else if (type === 'error') {
-        document.getElementById('toastIcon').textContent = '⚠️';
-        content.className = 'p-3 rounded-xl shadow-lg border text-xs font-bold flex items-center gap-2.5 bg-rose-800 text-white border-rose-700';
+        icon.textContent = '⚠️';
+        content.className = 'p-4 rounded-xl shadow-xl border text-sm font-bold flex items-center gap-3 bg-rose-800 text-white border-rose-600';
       } else {
-        document.getElementById('toastIcon').textContent = 'ℹ️';
-        content.className = 'p-3 rounded-xl shadow-lg border text-xs font-bold flex items-center gap-2.5 bg-slate-800 text-white border-slate-700';
+        icon.textContent = 'ℹ️';
+        content.className = 'p-4 rounded-xl shadow-xl border text-sm font-bold flex items-center gap-3 bg-slate-900 text-white border-slate-700';
       }
       toast.classList.remove('opacity-0', 'pointer-events-none');
-      setTimeout(() => toast.classList.add('opacity-0', 'pointer-events-none'), 3200);
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'pointer-events-none');
+      }, 3500);
     }
   </script>
 </body>
